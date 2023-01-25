@@ -1,0 +1,12 @@
+@media (prefers-color-scheme: light) {
+    form.dialogform input {
+        background-color: #FAEBD7;
+        color: black;
+    }
+}
+@media (prefers-color-scheme: dark) {
+    form.dialogform input {
+        background-color: #400000;
+        color: #FAEBD7;
+    }
+}

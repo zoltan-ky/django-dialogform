@@ -1,0 +1,29 @@
+{# -*- mode:web -*- engine:django -*- #}
+{% comment %}
+
+View template for **iframe**-based dialogs that use a small, complete <html>
+document. This template includes media for any dialog_anchors included with the
+form and the dialog form itself.
+
+Parameters: form, form_tags_type, dialogform_cssclass] - - provided by views
+derived from dialogform.views
+
+{% endcomment %}
+{% load static %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Style-Type" content="text/css"/>
+    {% block extrahead %}
+    {{ form.media }}
+    {% include "dialogform/include/anchor_media.html" %}{# in case form refers to dialog-anchors #}
+    {% endblock %}
+  </head>
+  <body>
+    <div class="dialogform-dialog">
+      {% block dialog-content %}
+        {% include "dialogform/include/form.html" %}
+      {% endblock %}
+    </div>
+  </body>
+</html>

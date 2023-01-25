@@ -1,0 +1,56 @@
+{# -*- mode:web -*- engine:django -*- #}
+{% extends "dialogform/demo/page.html" %}
+{% comment %}
+
+Dialogfrom DEMO Initial page, listing preconfigured notes with their tags spiked
+with various dialog anchors
+
+{% endcomment %}
+
+{% block content %}
+  <h2>Dialog Form Demo Page</h2>
+  <p class="notes-links">{{ note_list.count }} Note{{ note_list.count|pluralize }}:</p>
+  <table class="note-list" style="position:relative;">
+    <tr>
+      <th scope="col">Note/Tags</th><th scope="col">Dialog</th> <th scope="col">Dialog/<br>iframe</th>
+      <th scope="col">Date</th><th scope="col">Published</th>
+    </tr>
+  {% for note in note_list %}
+    <tr>
+      <td>{% spaceless %}
+        <div class="noteandtags">
+          {{ note.content }}
+          <sup>
+            <div class="dialog-anchor" data-url="{% url 'note-selecttags' pk=note.pk %}">
+              {% if note.tags.count %}
+                <span>
+                  {% for tag in note.tags.all %}{{ tag.name }}{% if not forloop.last %},{% endif %}{% endfor %}
+                </span>
+              {% else %}
+                <img class="hide" src="/static/dialogform/demo/img/icon-tag.svg">
+              {% endif %}
+            </div>
+          </sup>
+        </div>
+      {% endspaceless %}</td>
+      <td>
+        <div class="dialog-anchor" data-url="{% url 'note-edit' pk=note.pk %}" title="Edit with dialog">
+          <span>Edit</span></div>
+      </td>
+      <td>
+        <div class="dialog-anchor" data-url="{% url 'note-iframe' pk=note.pk %}"  title="Edit with dialog/iframe"
+             data-type="iframe">
+          <span>Edit</span></div>
+      </td>
+      <td>
+        {{ note.date }}
+      </td>
+      <td>
+        {{ note.published }}
+      </td>
+    </tr>
+  {% endfor %}
+  </table>
+  <p>Hover after 'First Note' to uncover tag editing. <a href="{% url 'admin:demo_note_changelist' %}">Go to Notes in Admin</a>
+    to see dialog-anchor demos within the admin and to add/remove Notes or Tags. Login as <b>admin</b>/<b>admin</b></p>
+{% endblock %}

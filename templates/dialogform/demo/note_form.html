@@ -1,0 +1,16 @@
+{# -*- mode:web -*- engine:django -*- #}
+{% extends dialogform_template %}
+{% comment %}
+
+Dialogfrom DEMO app dialog template that is rendered by the DEMO app views.
+
+(a configured "glue" to the different dialogform app templates for DEMO
+purposes)
+
+'dialog-media' and 'dialog-content' blocks may be defined.
+
+{% endcomment %}
+{% block dialog-content %}
+  <h2>{% if object.pk %}Edit: {{ object }}{% else %}Add new {{ form.Meta.model }}{% endif %}</h2>
+  {{ block.super }}
+{% endblock %}

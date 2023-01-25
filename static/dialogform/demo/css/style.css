@@ -1,0 +1,48 @@
+/*
+ * Dialogdemo styles
+ */
+@media (prefers-color-scheme: light) {
+    :root {
+        --_dialog_background:       var(--dialog-background, var(--body-bg, white));
+        --_dialog-background-hover: var(--dialog-background-hover,          #FAEBD7);
+        --_dialog-color:            var(--dialog-color,      var(--body-fg, #002040));
+    }
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --_dialog-background:       var(--dialog-background, var(--body-bg, black));
+        --_dialog-background-hover: var(--dialog-background-hover,          #404040);
+        --_dialog-color:            var(--dialog-color,      var(--body-fg, #FAEBD7));
+    }
+}
+html {
+    font-family: Arial, Helvetica, sans-serif;
+}
+body {
+    padding: 20px;
+    background: var(--_dialog-background);
+    color:      var(--_dialog-color);
+}
+body.popup {                    /* iframe dialogs have <html><body>...*/
+    padding: 0;                 /* not needed in dialog view */
+}
+div.noteandtags {
+    font-size: 1rem;
+}
+div.noteandtags sup {
+    color: #CC0;
+}
+
+input, textarea, select, button {
+    background: var(--_dialog-background); /* from dialogform */
+    color:      var(--_dialog-color);
+}
+
+td {
+    vertical-align: baseline;
+    padding: 0.25em 1em;
+}
+
+table.note-list td:nth-child(n+2) {
+    text-align: center;
+}

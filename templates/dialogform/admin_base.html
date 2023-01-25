@@ -1,0 +1,26 @@
+{# -*- mode:web -*- engine:django -*- #}
+{% extends "admin/base.html" %}
+{% comment %}
+
+Dialog Form View template for iframe dialogs where forms may contain Admin
+widgets dependent on admin media
+
+Extends admin/base with the 'is_popup' template variable being set (among
+others) by DialogFormMixin to avoid setting page headers, sidebars etc. All this
+will of course require being logged into admin
+
+{% endcomment %}
+{% load static %}
+{% block extrahead %}
+  {# For this to work, see override in dialogform/demo/urls.py #}
+  <script src="{% url 'admin:jsi18n' %}"></script>
+  {{ form.media }}
+{% endblock %}
+
+{% block content %}
+  <div class="dialogform-dialog">
+    {% block dialog-content %}
+      {% include "dialogform/include/form.html" %}
+    {% endblock %}
+  </div>
+{% endblock %}

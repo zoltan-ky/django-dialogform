@@ -1,0 +1,97 @@
+/*
+ * Define dialogform css variables
+ */
+@media (prefers-color-scheme: light) {
+    :root {
+        /* Define these taking account of admin's variables as well, if defined */
+        --_dialog-background:       var(--dialog-background, var(--body-bg, white));
+        --_dialog-background-hover: var(--dialog-background-hover,          #FAF1DD);
+        --_dialog-color:            var(--dialog-color,      var(--body-fg, #002040));
+        --_dialog-anchor-bg-hover:  var(--dialog-anchor-background-hover,   #FAF1DD);
+    }
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --_dialog-background:       var(--dialog-background, var(--body-bg, black));
+        --_dialog-background-hover: var(--dialog-background-hover,          #40484F);
+        --_dialog-color:            var(--dialog-color,      var(--body-fg, #FAEBD7));
+        --_dialog-anchor-bg-hover:  var(--dialog-anchor-background-hover,   #50585F);
+    }
+}
+
+:root  {
+    --_icon-size: var(--icon-size, 20px);
+}
+
+/*
+ * Style dialog-anchor
+ */
+
+.dialog-anchor {
+    /* min-width:  var(--_icon-size); */
+    /* height:     var(--_icon-size); */
+    display:    inline-block;
+    box-sizing: border-box;
+}
+
+.dialog-anchor span {
+    text-decoration: none;
+}
+.dialog-anchor span:hover {
+    text-decoration: underline;
+    text-underline-position: under;
+    text-underline-offset: 0.1em;
+    text-decoration-thickness: 1px;
+    background: var(--_dialog-anchor-bg-hover);
+}
+
+.dialog-anchor img {
+    height: var(--_icon-size);
+    width:  var(--_icon-size);
+}
+
+.dialog-anchor .hide {
+    opacity: 0;
+}
+.dialog-anchor .hide:hover {
+    opacity: 1;
+}
+
+
+/*
+ * Style dialogform class elements
+ */
+.dialogform-dialog, .dialogform-iframe {
+    position: fixed;            /* exact location calculated on load */
+    padding: 16px;              /* set same for dialog.dialogform-dialog and  div.dialogform-dialog */
+    margin: 0;
+    opacity: 1.0;
+    background: var(--_dialog-background);
+    color:      var(--_dialog-color);
+    border-width:  1px;
+    border-radius: 10px;
+}
+
+.dialogform-iframe,
+.dialogform-iframe > iframe {
+    margin: 0;
+    padding: 0;
+}
+.dialogform-iframe > iframe {
+    border: 0;
+    border-radius: 10px;        /* match dialogform-dialog, not to obscure with background */
+}
+
+form.dialogform button {
+    border: revert;
+    margin: 8px;
+    background: var(--_dialog-background); /* from dialogform */
+    color:      var(--_dialog-color);
+}
+
+/*
+ * Fix for dialogform-iframe within admin
+ */
+.popup div#content {
+    padding: 0;
+}
