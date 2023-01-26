@@ -31,6 +31,8 @@ Installation and Demo
 
 In an empty directory do:
 
+::
+
     git clone https://github.com/zoltan-ky/django-dialogform.git .
 
 If you wish to run the demo, after installing the above, check for manage.py and in the same directory set up a python3 environment e.g (using bash):
@@ -42,6 +44,8 @@ If you wish to run the demo, after installing the above, check for manage.py and
     pip install -r requirements.txt
 
 This will install the only requirement, django 4.1.  Then run:
+
+::
 
     ./manage.py runserver 8000
 
@@ -112,6 +116,8 @@ To convert a view to a dialog view:
         form_class = SomeDialogForm
         success_url = reverse_lazy("someviewname")
 
+``success_url`` represents the next view that the dialog view will be redirected to after the ``OK`` button has been pressed and the form had been successfully saved (just like with regular Django views).
+
 The important parts are that your template (e.g ``sometemplate.html``) extends one of the following templates depending on the View (Admin or not) and dialog type required (same-document / iframe-document):
 
 +---------------+-----------------+-----------------+                             
@@ -126,8 +132,40 @@ The dialog templates required for ``dialog/iframe`` have a complete document ``<
 
 Templates derived from ``dialog.html`` are designed to render a document fragment containing a single ``<form>`` element as described under Forms above.
 
-``success_url`` represents the next view that the dialog view will be redirected to after the ``OK`` button has been pressed and the form had been successfully saved (just like with regular Django views).
+3Dialog Template Extension Blocks
+''''''''''''''''''''''''''''''''
 
+The dialog templates listed in the table above may be extended from their default form only content
+
+dialog-content
+..............
+
+This extension example assumes extending dialog.html:
+
+::
+
+   {% extends "dialogform/dialog.html" %}
+   {% block dialog-content %}
+      ...some content before the form...
+      {{ block.super }}
+      ...any content after the form...
+   {% endblock %}
+
+dialog-media
+............
+
+If some additional media, not captured by the form/widgets media is required:
+
+::
+
+   {% extends "dialogform/dialog.html" %}
+   {% block dialog-media %}
+      load additional media before the form media
+      {{ block.super }}
+      and after 
+   {% endblock %}
+
+   
 Anchors
 ^^^^^^^
 Views that want to be able to open dialogs (dialog views) have to populate ``dialog-anchors`` that serve the role ``<a>`` link elements:
