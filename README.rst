@@ -36,6 +36,7 @@ In an empty directory do:
 If you wish to run the demo, after installing the above, check for manage.py and in the same directory set up a python3 environment e.g (using bash):
 
 ::
+   
     python3 -m venv .venv
     source .venv/bin/activate
     pip install -r requirements.txt
@@ -60,6 +61,7 @@ Forms
 ``dialogform.forms`` provides ``DialogMixin``, ``DialogAdminFormMixin`` to extend forms to appear as dialogforms. E.g.:
 
 ::
+   
     from dialogform.forms import DialogMixin
     ...
     class SomeForm(DialogMixin,...)
@@ -77,6 +79,7 @@ Forms for Admin
 ``DialogAdminFormMixin`` is a Form mixin that collects the admin media necessary for the Form it is extending - necessary only if the Form is referring to Admin fields/widgets. An example from dialogform/demo:
 
 ::
+   
      class Note4AdminForm(DialogAdminFormMixin, forms.ModelForm):
          class Meta:
              model = Note
@@ -101,6 +104,7 @@ Templates
 To convert a view to a dialog view:
 
 ::
+   
     from dialogform.views import DialogFormMixin
     ...
     class NoteChange(DialogFormMixin, UpdateView):
@@ -129,6 +133,7 @@ Anchors
 Views that want to be able to open dialogs (dialog views) have to populate ``dialog-anchors`` that serve the role ``<a>`` link elements:
 
 ::
+   
     <div class="dialog-anchor" data-url="{% url 'someapp:some-dialog-view-name' %}" title="helpful-popup if needed">
         <span>Some Anchor Text</span>   **or**:  <img src="some url to an anchor icon" ...>
     </div>
@@ -136,6 +141,7 @@ Views that want to be able to open dialogs (dialog views) have to populate ``dia
 For ``dialog/iframe`` dialog type just add the ``data-type`` attribute:
 
 ::
+   
     <div class="dialog-anchor" data-url="{% url 'someapp:some-dialog-view-name' %}" title="some-helpful-popup"
          data-type="iframe">
          ...
@@ -146,17 +152,20 @@ CSS Styling
 Basic dialogform styling is supported by for root media light/dark-color-scheme-aware variables:
 
 ::
+   
     --dialog-background
     --dialog-color
 
 These allow to make the dialog form somewhat different from the page over which it appears if desired.
 
 ::
+   
     --dialog-anchor-bg-hover
 
 affects the background of dialog-anchor text spans when hovered over.
 
 ::
+   
     --icon-size
 
 determines the size of the icons displayed by dialog-anchors. To make the dialog-anchor image icon disappear until hovered over, add ``class="hide"`` to the <img> element. dialog-anchor text span is shown underlined when hovered over.
