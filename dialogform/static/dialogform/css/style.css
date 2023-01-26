@@ -5,7 +5,6 @@
     :root {
         /* Define these taking account of admin's variables as well, if defined */
         --_dialog-background:       var(--dialog-background, var(--body-bg, white));
-        --_dialog-background-hover: var(--dialog-background-hover,          #FAF1DD);
         --_dialog-color:            var(--dialog-color,      var(--body-fg, #002040));
         --_dialog-anchor-bg-hover:  var(--dialog-anchor-background-hover,   #FAF1DD);
     }
@@ -13,7 +12,6 @@
 @media (prefers-color-scheme: dark) {
     :root {
         --_dialog-background:       var(--dialog-background, var(--body-bg, black));
-        --_dialog-background-hover: var(--dialog-background-hover,          #40484F);
         --_dialog-color:            var(--dialog-color,      var(--body-fg, #FAEBD7));
         --_dialog-anchor-bg-hover:  var(--dialog-anchor-background-hover,   #50585F);
     }
