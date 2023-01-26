@@ -32,15 +32,6 @@ class DialogFormMixin(FormMixin):
         if form_tags_type not in ['table', 'div']:
             raise Exception("supported 'form_tags_type's are 'table' and 'div'")
         context["dlgfrm_tags"] = _form_tags[form_tags_type]
-            
-        #form = context["form"]
-        # These template context variables are provided to optionally allow
-        # finer-grain control over media loading in templates extended from
-        # dialogform/dialog.html. ('iframe'-type dialogs can simply use {{
-        # form.media }} in templates)
-        #context["dialogform_media_css"] = _ms("\n".join(form.media.render_css()));
-        #context["dialogform_media_js"] = \
-        #    json_script(form.media.render_js(), element_id="dialogform-media-js")
         return context
     
     def get_template_names(self):
