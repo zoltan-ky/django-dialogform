@@ -18,10 +18,15 @@ function roundTime(date, n_minutes) {
 }
 // To test script evaluation...
 document.addEventListener("DOMContentLoaded", (event) => {
-    let button = document.querySelector('.dialogform button[value="cancel"]');
-    if (button)
-        button.style['background-color'] = "#C09090";
-    button = document.querySelector('.dialogform button[value="confirm"]');
-    if (button)
-        button.style['background-color'] = "#00A000";
+    // Color all present .dialogform dialog buttongs
+    console.log('additional.js DOMContentLoaded event processsing');
+    let buttons = document.querySelectorAll('.dialogform button[value=cancel]');
+    for (let button of buttons) {
+        button.style.setProperty("background-color","#C09090");
+    }
+    buttons = document.querySelectorAll('.dialogform button[value=confirm]');
+    for (let button of buttons) {
+        button.style.setProperty("background-color","#00A000");
+    }
 });
+

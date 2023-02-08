@@ -1,13 +1,10 @@
 {# -*- mode:web -*- engine:django -*- #}
-{% extends dialogform_template %}
+{% extends dialogform_template %}	{# See demo/views.py #}
 {% comment %}
 
-Dialogfrom DEMO app dialog template that is rendered by the DEMO app views.
+Dialogfrom DEMO app *note* model *change* dialog template. 
 
-(a configured "glue" to the different dialogform app templates for DEMO
-purposes)
-
-'dialog-media' and 'dialog-content' blocks may be defined.
+Extends 'dialog-content' blocks of the base template (dialog.html, page.html, or page_catalog.html)
 
 {% endcomment %}
 {% block dialog-content %}

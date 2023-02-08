@@ -19,15 +19,17 @@
 
 :root  {
     --_icon-size: var(--icon-size, 20px);
+    --_border-radius: var(--dialog-border-radius, 8px);
 }
 
 /*
- * Style dialog-anchor
+ * Dialog-anchor
+ *
+ * The element is either a <div> (for block style anchors) or a <span> (for
+ * inline anchors)
  */
 
 .dialog-anchor {
-    /* min-width:  var(--_icon-size); */
-    /* height:     var(--_icon-size); */
     display:    inline-block;
     box-sizing: border-box;
 }
@@ -57,39 +59,41 @@
 
 
 /*
- * Style dialogform class elements
+ * Dialogform elements
  */
-.dialogform-dialog, .dialogform-iframe {
-    position: fixed;            /* exact location calculated on load */
-    padding: 16px;              /* set same for dialog.dialogform-dialog and  div.dialogform-dialog */
+
+.dialogform-dialog, dialog.dialogform-iframe {
     margin: 0;
+    padding: 0;
     opacity: 1.0;
     background: var(--_dialog-background);
     color:      var(--_dialog-color);
     border-width:  1px;
-    border-radius: 10px;
+    border-top-width: 8px;
+    border-radius: var(--_border-radius);
 }
 
-.dialogform-iframe,
-.dialogform-iframe > iframe {
+dialog.dialogform-dialog, dialog.dialogform-iframe {
+    position: fixed;            /* exact location and size calculated on load */
+    overflow: auto;             /* if size reduced due to viewport size */
+    padding: 16px;
+    box-sizing: border-box;
+}
+div.dialogform-content,
+dialog.dialogform-iframe > iframe {
     margin: 0;
     padding: 0;
-}
-.dialogform-iframe > iframe {
     border: 0;
-    border-radius: 10px;        /* match dialogform-dialog, not to obscure with background */
+    box-sizing: border-box;
+}
+div.dialogform-content > * {
+    margin: 0;                  /* do not interfere with dialogform-dialog padding calc. */
 }
 
-form.dialogform button {
-    border: revert;
+div.dialogform-buttons > button {
     margin: 8px;
     background: var(--_dialog-background); /* from dialogform */
     color:      var(--_dialog-color);
-}
-
-/*
- * Fix for dialogform-iframe within admin
- */
-.popup div#content {
-    padding: 0;
+    border: revert;
+    border-radius: 4px;
 }

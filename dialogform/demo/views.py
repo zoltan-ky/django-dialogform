@@ -6,22 +6,32 @@ from django.urls import reverse, reverse_lazy
 
 from dialogform.views import DialogFormMixin
 from .models import Note, Tag
-from .forms import NoteForm, NoteTagsSelectForm, Note4AdminForm
+from .forms import NoteForm, NoteTagsSelectForm, SearchForm, Note4AdminForm
 
 class Notes(ListView):
     model = Note
     template_name = "dialogform/demo/note_list.html"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        print(f'request.GET: {self.request.GET}\n')
+        queryform = \
+            queryform = SearchForm(self.request.GET) if 'search' in self.request.GET \
+                else SearchForm({'search':''})
+        context["queryform"] = queryform
+        queryform.full_clean()
+        qd = queryform.cleaned_data
+        if qd["search"]:
+            context['note_list'] = context['note_list'].filter(content__icontains=qd["search"])
+        return context
+
 class NoteChange(DialogFormMixin, UpdateView):
-    # View referred to by dialog-anchor url
     model = Note
     template_name = "dialogform/demo/note_form.html"
     extends = "dialogform/dialog.html"
     
-
     def get_form_class(self):
-        return NoteForm if 'admin' not in self.kwargs \
-            else Note4AdminForm
+        return NoteForm if 'admin' not in self.kwargs else Note4AdminForm
 
     def get_success_url(self):
         return reverse("notes") if 'admin' not in self.kwargs \
@@ -40,17 +50,13 @@ class NoteChangeIframe(NoteChange):
     
     def setup(self, request, *args, **kwargs):
         if 'admin' in kwargs:
-            self.extends = "dialogform/admin_base.html"
+            self.extends = "dialogform/demo/page_catalog.html"
         super().setup(request, *args, **kwargs)
-    
+
 
 class NoteSelectTags(DialogFormMixin, UpdateView):
     model = Note
     form_class = NoteTagsSelectForm
-    # In this case the Update model class is Note but our form deals with
-    # "tags", not a field on Note, so we need to override the default UpdateView
-    # "note_form.html". For this simple case "dialogform/dialog.html" template's
-    # handling of the form is sufficient.
     template_name = "dialogform/dialog.html"
 
     def get_success_url(self):
@@ -59,3 +65,4 @@ class NoteSelectTags(DialogFormMixin, UpdateView):
 
     def get_initial(self):
         return {'tags':list(self.object.tags.values_list('id',flat=True))}
+

@@ -3,28 +3,31 @@ django-dialogform
 
 Overview
 --------
-Django app to open your forms and views in dialog popups. The idea is to allow smaller forms that would typically not fill entire screens, but maybe only modify some attributes of a model or create new relations between models, or even simple messages with a single OK button to be created, opened and closed using ``<dialog>`` elements. They can also be used for filling search/query forms without loosing track or moving away from the data page filling the screen.
+Django app to open forms and views in dialog popups. The idea is to allow smaller forms that would typically not fill entire screens, but maybe only modify some attributes of a model or create new relations between models, or just run queries, etc.
 
-Two different dialog view/template options are provided:
+Two different dialog view/template options are included:
 
-1) ``dialog`` - that displays your form immediately within a ``<dialog>`` element in the same html document context where the link/anchor to it is; and
+1) ``dialog`` - that displays a form immediately within a ``<dialog>`` element in the same html document context where the link/anchor to it is; and
 
 2) ``dialog/iframe`` - that creates an ``<iframe>`` element under the ``<dialog>`` and loads the form and all its associated media into a separate iframe contentWindow/document.
 
-The dialogs are non-modal, so they allow for simple dialog nesting actions, like an "X" that opens another delete-confirmation dialog, or some other link to create an intermediate model, if necessary for completing the initating dialog.  This is also userful if you're using additional django packages like django-autocomplete-light or others that open their own dialogs that could be blocked by modal dialogs.
+The dialogs are non-modal, so they allow for simple dialog nesting actions, like an "X" that opens another delete-confirmation dialog, or some other link to create an intermediate model, if necessary for completing the initiating dialog.  This is also useful if you're using additional django packages in your forms that may use dialogs that could be blocked by a modal dialog.
 
-The dialog views are regular django form views annotated by mixins and thus opened as dialogs. ``dialog-anchor`` elements, containing descriptive text or img icons, are inserted into other view templates for opening `url`s (that point to a dialog view).
+The dialog views are regular django form views annotated by mixins and thus opened as dialogs. ``dialog-anchor`` elements, containing descriptive text or img icons, are inserted into other view templates for opening dialog view urls.
 
-Dialogform form and view templates integrate the two types of dialogforms into Django's Admin, so that they can be used from ModelAdmin views.
+Dialogform form and view templates can also be used within the Admin and contain Admin widgets.
 
 A simple demo app for all these variants is included in a demo subdirectory included with dialogform.
-
 
 Requirements
 -------------
 
-Familiarity with setting up django4/python3 project development environment.
+Familiarity with setting up django4/python3 project development environment, forms, views and templates. Dialogform requires Django only.
 
+Known Limitations
+-----------------
+
+As of this time, Dialogforms are auto-positioning and sizing. Dialogform media assets are restricted to sameorigin only.
 
 Installation and Demo
 ---------------------
@@ -59,10 +62,18 @@ Using Dialogform
 
 As usual, add ``'dialogform',`` to ``INSTALLED_APPS`` in your project's ``settings.py``.
 
+For dialog/iframe type dialogs, if the jsi18n catalog is not already loaded by other means, add:
+
+::
+
+   path('dialogform/', include('dialogform.urls')),
+
+to your project ``urls.py``, and extend your template from ``dialogform/page_catalog.html`` instead of ``dialogform/page.html`` (see Views below).
+
 Forms
 ^^^^^
 
-``dialogform.forms`` provides ``DialogMixin``, ``DialogAdminFormMixin`` to extend forms to appear as dialogforms. E.g.:
+``dialogform.forms`` provides ``DialogMixin``, ``DialogAdminFormMixin`` for forms that are to be used as dialogforms. E.g.:
 
 ::
    
@@ -70,11 +81,13 @@ Forms
     ...
     class SomeForm(DialogMixin,...)
 
-``DialogMixin`` is currently just a "marker" as the media required get loaded by dialog-anchors that refer to Views containing ``DialogMixin`` forms.
+``DialogMixin`` is currently just a "marker". ``dialog-anchors`` that refer to views containing ``DialogMixin`` forms load the views and form media required.
 
 ``DialogForm`` is a ``DialogForm(DialogMixin, forms.Form)`` shorthand.
 
-The two buttons controlling the ``<dialog>`` forms, ``Cancel`` and ``OK``, are added by the dialogform form template (see also Templates below).  If saving the form fails, the dialog remains open with the form and errors displayed for correction and either ``Cancel`` or successful ``OK`` saves the form and closes the dialog.
+Two buttons controlling the ``<dialog>`` forms, ``Cancel`` and ``OK``, are added by the dialogform form template (see also Templates below).  If saving the form fails, the dialog remains open with the form and errors displayed for correction and either ``Cancel`` or successful ``OK`` saves the form and closes the dialog.  The ``Cancel`` button is only added if the template gets a ``form`` variable, otherwise just the ``OK`` will show to close the dialog.
+
+If there's no 'autofocus` field in the form, the ``Cancel`` button gets the focus. The dialogs can also be closed by ``Esc``.
 
 
 Forms for Admin
@@ -121,21 +134,21 @@ To convert a view to a dialog view:
 The important parts are that your template (e.g ``sometemplate.html``) extends one of the following templates depending on the View (Admin or not) and dialog type required (same-document / iframe-document):
 
 +---------------+-----------------+-----------------+                             
-|View/dia-type  |  Gen. Views     |    Admin Views  |
+|View/dialog-type  |  Gen. Views     |    Admin Views  |
 +===============+=================+=================+
 |dialog         |           dialog.html             |
 +---------------+-----------------+-----------------+
 |dialog/iframe  |  page.html      |  admin_base.html|
 +---------------+-----------------+-----------------+
 
-The dialog templates required for ``dialog/iframe`` have a complete document ``<html><head.../><body..../>`` that could also be used to render a non-dialog app view page.  The ``is_popup`` template context varible can be used to differentiate if necessary so that the same template could be rendered differently in a standard view vs in a ``dialog/iframe`` view.
+The dialog templates required for ``dialog/iframe`` have a complete document ``<html><head.../><body..../>`` that, if needed, could also be used to render a non-dialog, regular view page.  Like in Admin, the ``is_popup`` template context varible can be used to differentiate if necessary so that the same template could be rendered differently in a standard view vs. a ``dialog/iframe`` view.
 
-Templates derived from ``dialog.html`` are designed to render a document fragment containing a single ``<form>`` element as described under Forms above.
+Templates derived from ``dialog.html`` are designed to render a document fragment within a ``<dialog>`` containing a single ``<form>`` element as described under Forms above.
 
-3Dialog Template Extension Blocks
+Dialog Template Extension Blocks
 ''''''''''''''''''''''''''''''''
 
-The dialog templates listed in the table above may be extended from their default form only content
+The dialog templates listed in the table above may be extended. By default they contain the dialog view form only.
 
 dialog-content
 ..............
@@ -164,6 +177,10 @@ If some additional media, not captured by the form/widgets media is required:
       {{ block.super }}
       and after 
    {% endblock %}
+
+Admin Dialog Templates
+''''''''''''''''''''''
+
 
    
 Anchors

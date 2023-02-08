@@ -1,0 +1,28 @@
+{# -*- mode:web -*- engine:django -*- #}
+{% comment %}
+
+Dialogform form rendering
+
+Parameters: form, dlgfrm_tags, dialogform_cssclass
+
+dlgfrm_tags is set by DialogFormMixin (avoiding code duplication here)
+
+dialogform_cssclass may be optionally set by views using DialogFormMixin
+
+{% endcomment %}
+{% with method=dialogform_method|default:"dialog" %}
+<form method="{{ method }}" class="dialogform {{ dialogform_cssclass }}">
+  {% if method|lower != "get" %}{% csrf_token %}{% endif %}
+  <table>
+    {% if form %}
+      {{ form.as_table }}
+    {% endif %}
+    <tr class="dialogform-buttons">
+      {% if form %}
+        <td><button class="dialogform" value="cancel">Cancel</button></td>
+      {% endif %}
+      <td><button class="dialogform" value="confirm">OK</button></td>
+    </tr>
+  </table>
+</form>
+{% endwith %}

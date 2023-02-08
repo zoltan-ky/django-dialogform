@@ -10,6 +10,8 @@ with various dialog anchors
 {% block content %}
   <h2>Dialog Form Demo Page</h2>
   <p class="notes-links">{{ note_list.count }} Note{{ note_list.count|pluralize }}:</p>
+  <p>Here is a <em>local</em> <span class="dialog-anchor" data-url="#local_note_dialog"><span>Search dialog</span></span></p>
+  </p>
   <table class="note-list" style="position:relative;">
     <tr>
       <th scope="col">Note/Tags</th><th scope="col">Dialog</th> <th scope="col">Dialog/<br>iframe</th>
@@ -53,4 +55,9 @@ with various dialog anchors
   </table>
   <p>Hover after 'First Note' to uncover tag editing. <a href="{% url 'admin:demo_note_changelist' %}">Go to Notes in Admin</a>
     to see dialog-anchor demos within the admin and to add/remove Notes or Tags. Login as <b>admin</b>/<b>admin</b></p>
+
+
+  <div id="localdialogs">
+    {% include "dialogform/dialog.html" with dialogform_id="local_note_dialog" dialogform_method="get" form=queryform %}
+  </div>
 {% endblock %}

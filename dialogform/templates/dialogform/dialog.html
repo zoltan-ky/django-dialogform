@@ -1,17 +1,14 @@
 {# -*- mode:web -*- engine:django -*- #}
 {% comment %}
 
-Dialogform View template for simple dialogs (within the same document where the
-dialog_anchor(s) are)
-
-Parameters: form, form_tags_type, dialogform_media_{js,css} {provided by
-dialogform.views)
+Dialogform View template for dialog forms created within the same document where the
+dialog_anchor(s) are
 
 {% endcomment %}
-<dialog class="dialogform-dialog">
-  <div>
+<dialog {% if dialogform_id %}id="{{ dialogform_id }}"{% endif %} class="dialogform-dialog">
+  <div class="dialogform-content">
     {% block dialog-content %}
-      {% include "dialogform/include/form.html" %}
+      {% include "dialogform/include/form_table.html" %}
     {% endblock %}
   </div>
   <div class="dialogform-media">

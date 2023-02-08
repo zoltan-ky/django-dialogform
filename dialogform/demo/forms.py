@@ -1,27 +1,12 @@
+from django.db import models
 from django import forms
 from django.contrib import admin
-from dialogform.forms import DialogMixin, DialogAdminFormMixin
+from dialogform.forms import DialogMixin
 from .models import Note, Tag
 
 from django.forms.widgets import SplitDateTimeWidget
 
-class Note4AdminForm(DialogAdminFormMixin, forms.ModelForm):
-    class Meta:
-        model = Note
-        fields = ('content', 'date', 'published')
-        field_classes = {
-            'date' : forms.SplitDateTimeField
-        }
-        # Use AdminSplitDateTime as a more complex field with media to test
-        # DDialog dynamic script loading
-        widgets = {
-            'date': admin.widgets.AdminSplitDateTime
-        }
-    class Media:
-        css = {'all': ['dialogform/css/style.css']}
-
-
-class NoteForm(DialogAdminFormMixin, forms.ModelForm):
+class NoteForm(DialogMixin, forms.ModelForm):
     class Meta:
         model = Note
         fields = ('content', 'date', 'published')
@@ -30,18 +15,27 @@ class NoteForm(DialogAdminFormMixin, forms.ModelForm):
         }
         widgets = {
             'date': SplitDateTimeWidget(
+                date_format = '%Y-%m-%d',
+                time_format = '%H:%M',
                 date_attrs = {'type':'date',
                               'class':'datetime-date'},
                 time_attrs = {'type':'time',
                               'class':'datetime-time',
-                              'step':'300',
                               'min':'00:00',
-                              'max':'23:55'})
+                              'max':'23:59'})
         }
     class Media:
         js = ['dialogform/demo/js/additional.js']
         css = {'all': ['dialogform/demo/css/additional.css']}
 
+    def clean_content(self):
+        value = self.cleaned_data['content']
+        unwanted_str = "!@#$%^&*()|\\~`'\""
+        unwanted_set = set(unwanted_str)
+        if not set(value).isdisjoint(unwanted_set):
+            raise forms.ValidationError(
+                f'content field should not contain any of: "{unwanted_str}".')
+        return value
 
 # A reverse ManyToMany relation editing (dialog) form
 class NoteTagsSelectForm(DialogMixin, forms.ModelForm):
@@ -51,10 +45,37 @@ class NoteTagsSelectForm(DialogMixin, forms.ModelForm):
         model = Note
         fields = ('tags',)
 
-    # tags are not defined on Note but on Tag. So we override the m2m save
-    # method called from ModelForm.save() to save submitted tags relations to
-    # note (the 'public' m2m_save() method is not called from ModelForm.save()
-    # in Dj.4.1)
+    # tags are not defined on Note but on Tag. So override the m2m save method
+    # called from ModelForm.save() to save submitted tags relations to note (the
+    # 'public' m2m_save() method is not called from ModelForm.save() in Django
+    # 4.1)
     def _save_m2m(self):
         self.instance.tags.set(self.cleaned_data['tags'])
 
+
+class SearchForm(forms.Form):
+    search = forms.CharField(required=False, initial="", widget=forms.TextInput(attrs={'size':15}))
+
+# There's no django 'AdminForm' to provide the media necessary for admin except
+# through ModelAdmin, so here's a utility mixin to be used for dialog forms with
+# Admin widgets.
+class MetaModel(models.Model): pass
+
+class DialogAdminFormMixin(DialogMixin):
+    class Media:
+        js = admin.ModelAdmin(MetaModel,admin.sites.site).media._js
+        css = {'all':[
+            'admin/css/forms.css'
+        ]}
+        # Todo: merge css dict from ModelAdmin if/when it becomes non-empty
+
+class Note4AdminForm(DialogAdminFormMixin, NoteForm):
+    parents = forms.ModelMultipleChoiceField(
+        required=False, queryset=Note.objects.all(),
+    )
+    class Meta(NoteForm.Meta):
+        fields = ('content', 'date', 'parents', 'published')
+        widgets = {
+            'date': admin.widgets.AdminSplitDateTime(
+                attrs={'format':['%Y-%m-%d','%H:%M']})
+        }
