@@ -1,6 +1,6 @@
 
-class IFrameDialog {
-
+class BaseDialog {
+    
     constructor(a) {
         this.anchor = a;
         this.log = false;
@@ -102,13 +102,6 @@ class IFrameDialog {
             this.resizeObserver.observe(el);
         }
     }
-    setup_resize_dialog() {
-        this.setup_resize_form();
-        for (let el=this.form; el; el = el.parentElement) {
-            this.resizeObserver.observe(el);
-            this.topElement = el;
-        }
-    }
     
     place_dialog() {
         const anchor_rect = this.anchor.getBoundingClientRect();
@@ -146,41 +139,7 @@ class IFrameDialog {
             drgd.style.top  = Math.round(rect.top + deltaY) + "px";
         }, { 'capture': true });
     }
-
     
-    async create_dialog(dialog_container) {
-        const dialog = document.createElement('dialog');
-        this.dialog = dialog;
-        dialog.classList = 'dialogform-iframe';
-        const iframe = document.createElement('iframe');
-        this.iframe = iframe;   // save (e.g for drag ops)
-        dialog.appendChild(iframe);
-        dialog_container.appendChild(dialog);
-        dialog.style.top =  "0px";
-        dialog.style.left = "0px";
-        // Load...
-        var result = await new Promise((loaded) => {
-            // Chrome (as of20230208) does not produce load events on iframe.contentWindow
-            iframe.addEventListener('load', (event) => {loaded(true);});
-            if (this.response) {
-                // we have a previous response (e.g. a rejected form)
-                iframe.srcdoc = this.response.data;
-            } else {
-                iframe.src = this.anchor.dataset.url; 	// get a new dialogform
-            }
-        });
-        // Basic integrity checks
-        const div = iframe.contentDocument.querySelector('.dialogform-dialog');
-        const dialogButton = iframe.contentDocument.querySelector('.dialogform-buttons button[value=confirm]');
-        this.form = dialogButton.form;
-        if (!div || typeof this.form == "undefined") {
-            dialog_container.remove(); // clean up and complain
-            throw new Error('django dialogform not extended from dialogform template(s)?');
-        }
-        // this.setup_drag(dialog);
-        return dialog;
-    }
-
     autofocus(form) {
         let el = form.querySelector('[autofocus]');
         if (!el) {
@@ -281,7 +240,51 @@ class IFrameDialog {
     }
 }
 
-class LocalDialog extends IFrameDialog {
+class IFrameDialog extends BaseDialog {
+
+    setup_resize_dialog() {
+        this.setup_resize_form();
+        for (let el=this.form; el; el = el.parentElement) {
+            this.resizeObserver.observe(el);
+            this.topElement = el;
+        }
+    }
+    
+    async create_dialog(dialog_container) {
+        const dialog = document.createElement('dialog');
+        this.dialog = dialog;
+        dialog.classList = 'dialogform-iframe';
+        const iframe = document.createElement('iframe');
+        this.iframe = iframe;   // save (e.g for drag ops)
+        dialog.appendChild(iframe);
+        dialog_container.appendChild(dialog);
+        dialog.style.top =  "0px";
+        dialog.style.left = "0px";
+        // Load...
+        var result = await new Promise((loaded) => {
+            // Chrome (as of20230208) does not produce load events on iframe.contentWindow
+            iframe.addEventListener('load', (event) => {loaded(true);});
+            if (this.response) {
+                // we have a previous response (e.g. a rejected form)
+                iframe.srcdoc = this.response.data;
+            } else {
+                iframe.src = this.anchor.dataset.url; 	// get a new dialogform
+            }
+        });
+        // Basic integrity checks
+        const div = iframe.contentDocument.querySelector('.dialogform-dialog');
+        const dialogButton = iframe.contentDocument.querySelector('.dialogform-buttons button[value=confirm]');
+        this.form = dialogButton.form;
+        if (!div || typeof this.form == "undefined") {
+            dialog_container.remove(); // clean up and complain
+            throw new Error('django dialogform not extended from dialogform template(s)?');
+        }
+        // this.setup_drag(dialog);
+        return dialog;
+    }
+}
+
+class LocalDialog extends BaseDialog {
 
     clear_container(container) {
         // do nothing here
@@ -326,7 +329,7 @@ class LocalDialog extends IFrameDialog {
     }
 }
 
-class DialogDialog extends IFrameDialog {
+class DialogDialog extends BaseDialog {
 
     static LoadedScripts =
         new Set(Array.from(document.scripts).map((x) => x.getAttribute("src")));
@@ -426,7 +429,6 @@ class DialogDialog extends IFrameDialog {
         return dialog;
     }
 }
-
 
 class DialogFactory {
     static create(event) {
