@@ -14,14 +14,15 @@ with various dialog anchors
   </p>
   <table class="note-list" style="position:relative;">
     <tr>
-      <th scope="col">Note/Tags</th><th scope="col">Dialog</th> <th scope="col">Dialog/<br>iframe</th>
+      <th scope="col">Note,Tags Dialog</th><th scope="col">Note Dialog/<br>iframe</th>
       <th scope="col">Date</th><th scope="col">Published</th>
     </tr>
   {% for note in note_list %}
     <tr>
       <td>{% spaceless %}
         <div class="noteandtags">
-          {{ note.content }}
+          <div class="dialog-anchor" data-url="{% url 'note-edit' pk=note.pk %}" title="Edit with dialog">
+            <span>{{ note.content }}</span></div>
           <sup>
             <div class="dialog-anchor" data-url="{% url 'note-selecttags' pk=note.pk %}">
               {% if note.tags.count %}
@@ -36,13 +37,9 @@ with various dialog anchors
         </div>
       {% endspaceless %}</td>
       <td>
-        <div class="dialog-anchor" data-url="{% url 'note-edit' pk=note.pk %}" title="Edit with dialog">
-          <span>Edit</span></div>
-      </td>
-      <td>
         <div class="dialog-anchor" data-url="{% url 'note-iframe' pk=note.pk %}"  title="Edit with dialog/iframe"
              data-type="iframe">
-          <span>Edit</span></div>
+          <span>{{ note.content }}</span></div>
       </td>
       <td>
         {{ note.date }}

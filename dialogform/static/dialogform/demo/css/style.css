@@ -24,7 +24,8 @@ html {
 div.noteandtags {
     font-size: 1rem;
 }
-div.noteandtags sup {
+
+sup {
     color: #CC0;
 }
 
@@ -34,10 +35,6 @@ input, textarea, select, button {
 }
 
 td {
-    vertical-align: baseline;
     padding: 0.25em 1em;
-}
-
-table.note-list td:nth-child(n+2) {
-    text-align: center;
+    vertical-align: inherit;
 }

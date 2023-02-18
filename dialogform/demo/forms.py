@@ -9,7 +9,7 @@ from django.forms.widgets import SplitDateTimeWidget
 class NoteForm(DialogMixin, forms.ModelForm):
     class Meta:
         model = Note
-        fields = ('content', 'date', 'published')
+        fields = ('content', 'date', 'published', 'parents')
         field_classes = {
             'date' : forms.SplitDateTimeField
         }
@@ -72,10 +72,19 @@ class DialogAdminFormMixin(DialogMixin):
 class Note4AdminForm(DialogAdminFormMixin, NoteForm):
     parents = forms.ModelMultipleChoiceField(
         required=False, queryset=Note.objects.all(),
+        widget = admin.widgets.AutocompleteSelectMultiple(
+            Note.parents.field,
+            admin.sites.site
+        )
     )
     class Meta(NoteForm.Meta):
+        model = Note
         fields = ('content', 'date', 'parents', 'published')
         widgets = {
             'date': admin.widgets.AdminSplitDateTime(
                 attrs={'format':['%Y-%m-%d','%H:%M']})
         }
+
+    def __init__(self, *args, initial={}, **kwargs):
+        super().__init__(*args, initial=initial, **kwargs)
+        self.fields['parents'].initial = initial.get('parents',{})

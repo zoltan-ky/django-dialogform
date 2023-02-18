@@ -6,7 +6,7 @@ class Note(models.Model):
     content = models.CharField(max_length=200) 
     date = models.DateTimeField('date written')
     published = models.BooleanField(default=False)
-    parents = models.ManyToManyField('Note', blank=True, symmetrical=False,
+    parents = models.ManyToManyField('self', blank=True, symmetrical=False,
                                      related_name='children')
     def __str__(self): return f'Note({self.pk}): {self.content}'
 
