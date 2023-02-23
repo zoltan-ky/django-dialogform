@@ -1,8 +1,11 @@
+from pathlib import Path
 from django.contrib import admin
-from django.urls import include, path, reverse
+from django.urls import include, path, re_path
+from django.views import static
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.views.i18n import JavaScriptCatalog
 
+from .settings import BASE_DIR
 from .views import Notes, NoteChange, NoteChangeIframe, NoteSelectTags
 
 urlpatterns = [
@@ -21,6 +24,7 @@ urlpatterns = [
 
     path('admin/jsi18n/', JavaScriptCatalog.as_view(),            name = 'javascript-catalog'),
     path('admin/', admin.site.urls),
+    re_path('^(?P<path>favicon.ico)$', static.serve, {'document_root': Path(BASE_DIR,'dialogform/static/dialogform/demo/img')}),
 
 ] + staticfiles_urlpatterns()
 

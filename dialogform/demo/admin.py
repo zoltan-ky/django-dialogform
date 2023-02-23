@@ -14,8 +14,7 @@ class NoteAdmin(admin.ModelAdmin):
     list_editable = ('published',)
     
     class Media:
-        js = ["admin/js/vendor/select2/select2.full.js",
-              "dialogform/js/script.js"]
+        js = ["dialogform/js/script.js"]
         css = {"all": [
             "dialogform/css/style.css",
             "dialogform/demo/css/style.css"
@@ -42,7 +41,8 @@ class NoteAdmin(admin.ModelAdmin):
         return format_html(
             '<div class="dialog-anchor"' +
             '  data-type="dialog"' + # also default if omitted
-            f' data-url="{url}" title="{url}"><span>{note.content}</span></div>')
+            f' data-url="{url}" title="{url}"' +
+            f' data-cleanup="admin_cleanup"><span>{note.content}</span></div>')
 
     # Admin function that display the note content field annotated with any tags
     # and a popup tags dialog. A concatenation of iframe note and tags edit dialogs

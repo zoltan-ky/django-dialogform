@@ -1,11 +1,17 @@
+"use strict";
 
 class BaseDialog {
     
     constructor(a) {
         this.anchor = a;
         this.log = false;
+        this.listeners = [];
     }
 
+    hook_listener_fn() {}
+    unhook_listener_fn() {}
+    remove_listeners() {}
+    
     // Utility function to fetch response header *and* body:
     async fetchall(url, options) {
         const response = await fetch(url, options);
@@ -34,16 +40,14 @@ class BaseDialog {
         if (this.log) console.log(s);
     }
     
-    get_dialog_container() {
+    get_container() {
         const dialog_container = document.createElement('div');
         document.body.insertAdjacentElement('beforeend', dialog_container);
         return dialog_container;
     }
 
     clear_container(container) {
-        for (let child of container.children) {
-            child.remove();
-        }
+        for (let child of container.querySelectorAll('*')) child.remove();
     }
     
     remove_container(container) {
@@ -96,10 +100,20 @@ class BaseDialog {
         }
     });
 
+    okButtonSelector = '.dialogform-buttons button[value=confirm]';
+    
     setup_resize_form() {
-        let button = this.form.querySelector('.dialogform-buttons button[value=confirm]');
+        let button = this.form.querySelector(this.okButtonSelector);
         for (let el = button; !(el === this.form); el = el.parentElement) {
             this.resizeObserver.observe(el);
+        }
+    }
+
+    setup_resize_dialog() {
+        this.setup_resize_form();
+        for (let el = this.form; !(el === this.dialog); el = el.parentElement) {
+            this.resizeObserver.observe(el);
+            this.topElement = el;
         }
     }
     
@@ -144,10 +158,9 @@ class BaseDialog {
         let el = form.querySelector('[autofocus]');
         if (!el) {
             // If no other, set OK/confirm button as default autofocus
-            let elSelector = '.dialogform-buttons button[value=confirm]';
-            el = form.querySelector(elSelector);
+            el = form.querySelector(this.okButtonSelector);
             if (!el) {
-                throw new Error(`${form} does not contain ${elSelector}`);
+                throw new Error(`${form} does not contain ${this.okButtonSelector}`);
             }
             el.setAttribute("autofocus","");
         }
@@ -157,35 +170,31 @@ class BaseDialog {
     async process() {
         const anchor = this.anchor;
         const url = anchor.dataset.url;
-        const dialog_container = this.get_dialog_container();
+        const dialog_container = this.get_container();
         this.response = null;
         
         for (let done = false; !done ;) {
 
             this.clear_container(dialog_container);
+            this.hook_listener_fn();
             await this.create_dialog(dialog_container);
             this.setup_resize_dialog();
-            
             let el = this.autofocus(this.form);
             await new Promise((focused) => {
                 el.addEventListener('focus', () => focused(true),{ once: true });
                 this.dialog.show();
                 el.focus();         // in case it's alredy presented
             });
-            
             this.form_method = this.form.getAttribute("method");
             this.form.setAttribute("method","dialog");
-            
             let formClose = await new Promise((finished) => {
                 const buttons = this.form.querySelectorAll(".dialogform-buttons button");
                 for (const button of buttons) {
-                    button.addEventListener(
-                        'click',
-                        event => {
-                            event.preventDefault();
-                            finished({ value: event.target['value'],
-                                       target: event.target })
-                        },{ once: true });
+                    button.addEventListener('click', event => {
+                        event.preventDefault();
+                        finished({ value: event.target['value'],
+                                   target: event.target })
+                    },{ once: true });
                 }
                 // Clicking any links must open in a new context, leave this one alone
                 const anchor_container = (typeof this.iframe == "undefined") ?
@@ -194,17 +203,20 @@ class BaseDialog {
                 for (const anchor of anchors) {
                     anchor.target = '_blank';
                 }
-                this.form.addEventListener(
-                    'keydown', (event) => {
-                        if (event.code == "Escape")
-                            finished({ value: 'cancel', target: event.target });
-                    }, { 'capture': true });
+                // This works for dialog.show() (non-modal)
+                this.form.addEventListener('keydown', (event) => {
+                    if (event.code == "Escape")
+                        finished({ value: 'cancel', target: event.target });
+                }, { 'capture': true });
                 // Any submit confirms
-                this.form.addEventListener(
-                    'submit', event => finished({ value: 'confirm',
-                                                  target: event.target}));
+                this.form.addEventListener('submit', event => {
+                    finished({ value: 'confirm', target: event.target});
+                });
             });
             this.dialog.close();
+            this.unhook_listener_fn();
+            this.remove_listeners();
+            
             // Restore form method
             this.form.setAttribute("method", this.form_method);
             
@@ -230,13 +242,14 @@ class BaseDialog {
                     let search = new URLSearchParams(form_data);
                     window.location.assign(formAction.pathname + '?' + search.toString());
                 }
-            } else {
-                // Cancelled
-                this.form.reset();
             }
         }
         this.clear_container(dialog_container);
         this.remove_container(dialog_container);
+        // if provided invoke dialog cleanup function
+        if ('cleanup' in anchor.dataset && anchor.dataset.cleanup in globalThis) {
+            globalThis[anchor.dataset.cleanup]();
+        }
     }
 }
 
@@ -244,7 +257,7 @@ class IFrameDialog extends BaseDialog {
 
     setup_resize_dialog() {
         this.setup_resize_form();
-        for (let el=this.form; el; el = el.parentElement) {
+        for (let el = this.form; el; el = el.parentElement) {
             this.resizeObserver.observe(el);
             this.topElement = el;
         }
@@ -273,7 +286,7 @@ class IFrameDialog extends BaseDialog {
         });
         // Basic integrity checks
         const div = iframe.contentDocument.querySelector('.dialogform-dialog');
-        const dialogButton = iframe.contentDocument.querySelector('.dialogform-buttons button[value=confirm]');
+        const dialogButton = iframe.contentDocument.querySelector(this.okButtonSelector);
         this.form = dialogButton.form;
         if (!div || typeof this.form == "undefined") {
             dialog_container.remove(); // clean up and complain
@@ -293,31 +306,23 @@ class LocalDialog extends BaseDialog {
         // do nothing here
     }
     
-    get_dialog_container() {
+    get_container() {
         const dialog = document.querySelector(this.anchor.dataset.url);
         if (dialog) 
             return dialog.parentElement;
         throw new Error(`django dialogform - could not locate LocalDialog in document at ${this.anchor.dataset.url}`);
     }
     
-    setup_resize_dialog() {
-        this.setup_resize_form();
-        for (let el = this.form; !(el === this.dialog); el = el.parentElement) {
-            this.resizeObserver.observe(el);
-            this.topElement = el;
-        }
-    }
-
     async create_dialog(dialog_container) {
         const dialog = document.querySelector(this.anchor.dataset.url);
         let button;
         // Basic checks
         if (dialog) {
             this.dialog = dialog;
-            this.form = dialog.querySelector('.dialogform');
+            this.form = dialog.querySelector('form.dialogform');
         }
         if (!dialog || !this.form ||
-            !(button = dialog.querySelector('.dialogform-buttons button'))) {
+            !(button = dialog.querySelector(this.okButtonSelector))) {
             throw new Error(`django dialogform LocalDialog malformed: dialog:${dialog},` +
                             `form:${this.form} button: ${button}`);
         }
@@ -331,31 +336,39 @@ class LocalDialog extends BaseDialog {
 
 class DialogDialog extends BaseDialog {
 
-    static LoadedScripts =
-        new Set(Array.from(document.scripts).map((x) => x.getAttribute("src")));
-
+    constructor(a) {
+        super(a);
+    }
+    
     static urlpathname(src) {
         return (src.indexOf(':') < 0) ? src : new URL(src).pathname;
     }
     
-    constructor(a) {
-        super(a);
-        // Update array of already loaded scripts
-        if (document.scripts.length > DialogDialog.LoadedScripts.size) {
-            for (let script of document.scripts) {
-                DialogDialog.LoadedScripts.add(DialogDialog.urlpathname(script.src));
-            }
-        }
-    }
-    
-    setup_resize_dialog() {
-        this.setup_resize_form();
-        for (let el = this.form; !(el === this.dialog); el = el.parentElement) {
-            this.resizeObserver.observe(el);
-            this.topElement = el;
-        }
+    hook_listener_fn() {
+        const listeners = this.listeners;
+        EventTarget.prototype.originalAddEventListener = EventTarget.prototype.addEventListener;
+        
+        const newAddEventListener = function (event, fn, ...args) {
+            this.originalAddEventListener(event, fn, ...args);
+            listeners.push({obj: this, event: event, fn: fn, args: args});
+        };
+        EventTarget.prototype.addEventListener = newAddEventListener;
     }
 
+    unhook_listener_fn() {
+        EventTarget.prototype.addEventListener = EventTarget.prototype.originalAddEventListener;
+    }
+    
+    remove_listeners() {
+        if (this.listeners.length > 0) {
+            for (const l of this.listeners) {
+                l.obj.removeEventListener(l.event, l.fn, ...l.args);
+            }
+        }
+        delete this.listeners;
+        this.listeners = [];
+    }
+    
     async create_dialog(dialog_container) {
         const error = (message) => {
             dialog_container.remove();
@@ -371,7 +384,7 @@ class DialogDialog extends BaseDialog {
 
         //  Basic dialogform verification
         const dialog = dialog_container.children[0];
-        if (dialog.tagName != "DIALOG") {
+        if (dialog.tagName !== "DIALOG") {
             error(`django template not extended from dialogform/dialog.html?`);
         }
         if (!(this.form = dialog.querySelector('.dialogform'))) {
@@ -379,53 +392,35 @@ class DialogDialog extends BaseDialog {
         }
         this.dialog = dialog;
         
-        // Extract/collect media scripts needed by this form
-        const temp_media_container = document.createElement('div');
-        const dialogform_media = dialog.querySelectorAll('.dialogform-media *');
-        for (const medium of dialogform_media) {
-            if (medium.tagName == "SCRIPT") {
-                temp_media_container.insertAdjacentElement('beforeend', medium);
-            }
+        // load media scripts needed by this form
+        const media_container = dialog.querySelector('.dialogform-media');
+        const documentScripts = Array.from(document.head.querySelectorAll("script"));
+        const media = Array.from(media_container.children).filter(m => m.tagName === "SCRIPT");
+
+        for (const medium of media) {
+            let m = documentScripts.find(s => s.src === medium.src);
+            if (m) m.remove();
         }
-        const media_scripts = dialog.querySelector('#dialogform-media-js');
-        if (media_scripts) {
-            temp_media_container.insertAdjacentHTML(
-                'beforeend', JSON.parse(media_scripts.textContent));
-        }
-        for (const medium of Array.from(temp_media_container.children)) {
-            // Load, remember and evaluate each script, same origin only, via urlpathname
-            const medium_src = DialogDialog.urlpathname(medium.src);
-            if (!DialogDialog.LoadedScripts.has(medium_src)) {
-                let type = medium.getAttribute("type");
-                if (!type) type = "text/javascript";
-                const script = await this.fetchall(medium.src, {
-                    method: 'GET',
-                    headers: { 'Content-Type' : type }
-                });
-                if (!script.ok) {
-                    error(`media GET ${medium.src} failed with unexpected status: ${script.status}`);
-                };
-                DialogDialog.LoadedScripts.add(medium_src);
-                
-                // Evaluate the downloaded script and leave it to save any
-                // subsequent dialogs on the same page from loading it again
-                const newscript = document.createElement("script");
-                newscript.text = script.data;
-                document.head.appendChild(newscript);
-                console.log(`${medium.src} eval completed.\n`);
-            } else {
-                console.log(`${medium.src} already loaded.\n`);
-            }
-        }
-        // this.setup_drag(dialog);
         
-        // Kick... as any/all scripts need to become aware of the mutation
-        // (**TODO**: this should be refined further... it works for now)
-        for (name of ['DOMContentLoaded', 'load']) {
-            let event = new Event(name);
-            window.document.dispatchEvent(event);
-            window.dispatchEvent(event);
+        // Load media in a synchronous sequence preserving list order
+        for (const medium of media) {
+            await new Promise((loaded) => {
+                const newscript = document.createElement("script");
+                let type = medium.getAttribute("type");
+                if (type) newscript.type = type;
+                newscript.addEventListener('error', (e) => {
+                    console.log(`${newscript.src} load failed!\n`);
+                    loaded(true);});
+                newscript.addEventListener('load',  (e) => {
+                    console.log(`${newscript.src} loaded.\n`);
+                    loaded(true);});
+                document.head.appendChild(newscript);
+                newscript.src = DialogDialog.urlpathname(medium.src);
+            });
         }
+        window.document.dispatchEvent(new Event('DOMContentLoaded'));
+        window.dispatchEvent(new Event('load'));
+        // this.setup_drag(dialog);
         return dialog;
     }
 }
@@ -436,6 +431,9 @@ class DialogFactory {
         while (a && !a.classList.contains('dialog-anchor')) a = a.parentElement;
         if (!a) {
             throw new Error(`Something's terribly wrong: no .dialog-anchor for ${event} on ${event.target}`);
+        }
+        if (typeof jQuery === "undefined" && 'django' in globalThis) {
+            $ = jQuery = django.jQuery;
         }
         const type = ('type' in a.dataset) ? a.dataset.type : 'dialog';
         if (type == 'dialog') {
@@ -454,7 +452,7 @@ window.addEventListener('DOMContentLoaded', () => {
         anchor.addEventListener("click", async (event) => {
             event.stopImmediatePropagation();
             event.preventDefault();
-            await DialogFactory.create(event).process()
+            await DialogFactory.create(event).process();
         });
     }
 });

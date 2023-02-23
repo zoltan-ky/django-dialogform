@@ -1,10 +1,12 @@
 from django.db import models
 from django import forms
+from django.forms.widgets import SplitDateTimeWidget
 from django.contrib import admin
+from django.contrib.admin.widgets import AdminSplitDateTime, AutocompleteSelectMultiple,\
+    RelatedFieldWidgetWrapper
+
 from dialogform.forms import DialogMixin
 from .models import Note, Tag
-
-from django.forms.widgets import SplitDateTimeWidget
 
 class NoteForm(DialogMixin, forms.ModelForm):
     class Meta:
@@ -55,36 +57,30 @@ class NoteTagsSelectForm(DialogMixin, forms.ModelForm):
 
 class SearchForm(forms.Form):
     search = forms.CharField(required=False, initial="", widget=forms.TextInput(attrs={'size':15}))
-
-# There's no django 'AdminForm' to provide the media necessary for admin except
-# through ModelAdmin, so here's a utility mixin to be used for dialog forms with
-# Admin widgets.
-class MetaModel(models.Model): pass
-
-class DialogAdminFormMixin(DialogMixin):
     class Media:
-        js = admin.ModelAdmin(MetaModel,admin.sites.site).media._js
-        css = {'all':[
-            'admin/css/forms.css'
-        ]}
-        # Todo: merge css dict from ModelAdmin if/when it becomes non-empty
+        js=('dialogform/demo/js/search.js',)
 
-class Note4AdminForm(DialogAdminFormMixin, NoteForm):
+
+class Note4AdminForm(NoteForm):
     parents = forms.ModelMultipleChoiceField(
         required=False, queryset=Note.objects.all(),
-        widget = admin.widgets.AutocompleteSelectMultiple(
-            Note.parents.field,
-            admin.sites.site
-        )
+        widget = RelatedFieldWidgetWrapper(
+            AutocompleteSelectMultiple(
+                Note.parents.field,
+                admin.sites.site
+            ),
+            Note.parents.rel,
+            admin.sites.site,
+            can_add_related=True)
     )
+    class Media:
+        js = ['dialogform/demo/js/admin_cleanup.js']
+        # to clean up admin datetime shortcuts from document after closing
+        
     class Meta(NoteForm.Meta):
         model = Note
         fields = ('content', 'date', 'parents', 'published')
         widgets = {
-            'date': admin.widgets.AdminSplitDateTime(
+            'date': AdminSplitDateTime(
                 attrs={'format':['%Y-%m-%d','%H:%M']})
         }
-
-    def __init__(self, *args, initial={}, **kwargs):
-        super().__init__(*args, initial=initial, **kwargs)
-        self.fields['parents'].initial = initial.get('parents',{})

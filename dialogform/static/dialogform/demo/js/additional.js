@@ -16,10 +16,10 @@ function roundTime(date, n_minutes) {
     }
     return zeropad(hours,2)+':'+zeropad(minutes,2)
 }
+
 // To test script evaluation...
 document.addEventListener("DOMContentLoaded", (event) => {
     // Color all present .dialogform dialog buttongs
-    console.log('additional.js DOMContentLoaded event processsing');
     let buttons = document.querySelectorAll('.dialogform button[value=cancel]');
     for (let button of buttons) {
         button.style.setProperty("background-color","#C09090");
@@ -29,4 +29,5 @@ document.addEventListener("DOMContentLoaded", (event) => {
         button.style.setProperty("background-color","#00A000");
     }
 });
+
 
