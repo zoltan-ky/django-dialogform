@@ -73,6 +73,8 @@
     border-width:  1px;
     border-top-width: 8px;
     border-radius: var(--_border-radius);
+    display: flex;
+    flex-direction: column;
 }
 
 dialog.dialogform-dialog, dialog.dialogform-iframe {

@@ -1,60 +1,94 @@
 {# -*- mode:web -*- engine:django -*- #}
-{% extends "dialogform/demo/page.html" %}
 {% comment %}
 
-Dialogfrom DEMO Initial page, listing preconfigured notes with their tags spiked
-with various dialog anchors
+Dialogfrom DEMO Initial page
+
+Includes media required to instantiate dialog 'anchors' and basic demo app styling
 
 {% endcomment %}
+{% load static %}
+<!DOCTYPE html>
+<html>
+  
+  <head>
+    <meta http-equiv="Content-Style-Type" content="text/css"/>
+    <title>DialogDemo</title>
+    {% include "dialogform/include/anchor_media.html" %}
+    <link rel="stylesheet" type="text/css" href="{% static 'dialogform/demo/css/style.css' %}">
+  </head>
 
-{% block content %}
-  <h2>Dialog Form Demo Page</h2>
-  <p class="notes-links">{{ note_list.count }} Note{{ note_list.count|pluralize }}:</p>
-  <p>Here is a <em>local</em> <span class="dialog-anchor" data-url="#local_note_dialog"><span>Search dialog</span></span></p>
-  </p>
-  <table class="note-list" style="position:relative;">
-    <tr>
-      <th scope="col">Note,Tags Dialog</th><th scope="col">Note Dialog/<br>iframe</th>
-      <th scope="col">Date</th><th scope="col">Published</th>
-    </tr>
-  {% for note in note_list %}
-    <tr>
-      <td>{% spaceless %}
-        <div class="noteandtags">
-          <div class="dialog-anchor" data-url="{% url 'note-edit' pk=note.pk %}" title="Edit with dialog">
-            <span>{{ note.content }}</span></div>
-          <sup>
-            <div class="dialog-anchor" data-url="{% url 'note-selecttags' pk=note.pk %}">
-              {% if note.tags.count %}
-                <span>
-                  {% for tag in note.tags.all %}{{ tag.name }}{% if not forloop.last %},{% endif %}{% endfor %}
-                </span>
-              {% else %}
-                <img class="hide" src="/static/dialogform/demo/img/icon-tag.svg">
-              {% endif %}
+  <body>
+    
+    <h2>Dialog Form Demo Page</h2>
+    
+    <p class="notes-links">{{ note_list.count }} Note{{ note_list.count|pluralize }}:</p>
+    <p>Here is a <em>local</em> <span class="dialog-anchor" data-url="#local_note_dialog"><span>Search dialog</span></span>.</p>
+    <p>Each column of the table below shows a different editing dialog type for the rows of notes.</p>
+    <p><a href="{% url 'admin:demo_note_changelist' %}">Go to Notes in Admin</a>
+      to see dialog-anchor demos within the admin environment and to add/remove Notes or Tags.
+      Login as <b>admin</b>/<b>admin</b>  New notes can also be added using the admin "+" related widget wrapper within the dialogs.
+    </p>
+    <p> The form for the third and fourth columns below uses admin widgets - for these to work completely you should have logged into admin previously and returned here ("view site" in admin header).</p>
+    <br><br>
+    <table class="note-list" style="position:relative;">
+      <tr>
+        <th scope="col">Note and Tag Select Dialogs</th>
+        <th scope="col">Note Dialog/<br>iframe</th>
+        <th scope="col">Note Dialog<br>with admin widgets</th>
+        <th scope="col">Note Dialog/iframe<br>with admin widgets</th>
+        <th scope="col">Date</th><th scope="col">Published</th>
+      </tr>
+      
+      {% for note in note_list %}
+        <tr>
+          <td>{% spaceless %}
+            <div class="noteandtags">
+              <div class="dialog-anchor" data-url="{% url 'note-edit' pk=note.pk %}" title="Edit with dialog">
+                <span>{{ note.content }}</span></div>
+              <sup>
+                <div class="dialog-anchor" data-url="{% url 'note-selecttags' pk=note.pk %}">
+                  {% if note.tags.count %}
+                    <span>
+                      {% for tag in note.tags.all %}{{ tag.name }}{% if not forloop.last %},{% endif %}{% endfor %}
+                    </span>
+                  {% else %}
+                    <img class="hide" src="/static/dialogform/demo/img/icon-tag.svg">
+                  {% endif %}
+                </div>
+              </sup>
             </div>
-          </sup>
-        </div>
-      {% endspaceless %}</td>
-      <td>
-        <div class="dialog-anchor" data-url="{% url 'note-iframe' pk=note.pk %}"  title="Edit with dialog/iframe"
-             data-type="iframe">
-          <span>{{ note.content }}</span></div>
-      </td>
-      <td>
-        {{ note.date }}
-      </td>
-      <td>
-        {{ note.published }}
-      </td>
-    </tr>
-  {% endfor %}
-  </table>
-  <p>Hover after 'First Note' to uncover tag editing. <a href="{% url 'admin:demo_note_changelist' %}">Go to Notes in Admin</a>
-    to see dialog-anchor demos within the admin and to add/remove Notes or Tags. Login as <b>admin</b>/<b>admin</b></p>
+          {% endspaceless %}</td>
+          <td>
+            <div class="dialog-anchor" data-url="{% url 'note-iframe' pk=note.pk %}"  title="Edit with dialog/iframe"
+                 data-type="iframe">
+              <span>{{ note.content }}</span></div>
+          </td>
+          <td>
+            <div class="dialog-anchor" data-url="{% url 'note-edit-admin' pk=note.pk %}"
+                 title="Dialog/iframe Edit with admin widgets"
+                 data-cleanup="admin_cleanup">
+              <span>{{ note.content }}</span></div>
+          </td>
+          <td>
+            <div class="dialog-anchor" data-url="{% url 'note-iframe-admin' pk=note.pk %}"
+                 title="Dialog/iframe Edit with admin widgets"
+                 data-type="iframe"
+                 data-cleanup="admin_cleanup">
+              <span>{{ note.content }}</span></div>
+          </td>
+          <td>
+            {{ note.date }}
+          </td>
+          <td>
+            {{ note.published }}
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
 
+    <div id="localdialogs" style="display:none">
+      {% include "dialogform/dialog.html" with dialogform_id="local_note_dialog" dialogform_method="get" form=queryform %}
+    </div>
 
-  <div id="localdialogs">
-    {% include "dialogform/dialog.html" with dialogform_id="local_note_dialog" dialogform_method="get" form=queryform %}
-  </div>
-{% endblock %}
+  </body>
+</html>

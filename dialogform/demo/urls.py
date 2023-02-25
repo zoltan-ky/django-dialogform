@@ -22,7 +22,7 @@ urlpatterns = [
     path('note/<int:pk>/selecttags-admin/',NoteSelectTags.as_view(), {'admin':True},
                                                                   name = 'note-selecttags-admin'),
 
-    path('admin/jsi18n/', JavaScriptCatalog.as_view(),            name = 'javascript-catalog'),
+    re_path('.*admin/jsi18n/', JavaScriptCatalog.as_view(),            name = 'javascript-catalog'),
     path('admin/', admin.site.urls),
     re_path('^(?P<path>favicon.ico)$', static.serve, {'document_root': Path(BASE_DIR,'dialogform/static/dialogform/demo/img')}),
 

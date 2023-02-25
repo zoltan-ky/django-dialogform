@@ -1,13 +1,26 @@
 {# -*- mode:web -*- engine:django -*- #}
 {% extends dialogform_template %}	{# See demo/views.py #}
+{% load static %}
 {% comment %}
 
 Dialogfrom DEMO app *note* model *change* dialog template. 
 
-Extends 'dialog-content' blocks of the base template (dialog.html, page.html, or page_catalog.html)
+Extends 'dialog-content' blocks of the base template (dialog.html or page.html)
 
 {% endcomment %}
 {% block dialog-content %}
   <h2>{% if object.pk %}Edit: {{ object }}{% else %}Add new {{ form.Meta.model }}{% endif %}</h2>
+  {{ block.super }}
+{% endblock %}
+
+{% block dialog-media %}
+  {% if has_admin %}
+    <script src="{% url 'javascript-catalog' %}"></script>
+    <link rel="stylesheet" href="{% static 'admin/css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/css/dark_mode.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/css/forms.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/css/widgets.css' %}">
+    <script src="{% static 'admin/js/theme.js' %}"></script>
+  {% endif %}
   {{ block.super }}
 {% endblock %}

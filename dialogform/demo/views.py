@@ -39,19 +39,14 @@ class NoteChange(DialogFormMixin, UpdateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["dialogform_template"] = self.extends # used by iframe (next) view as well
+        if 'admin' in self.kwargs:
+            context["has_admin"] = True
+        context["dialogform_template"] = self.extends
         return context
 
-    
 class NoteChangeIframe(NoteChange):
-    # Everything same as above, but using an iframe in the dialog that loads all of admin
-    # media into the dialog iframe document
+    # dialog/iframe document (template_name above):
     extends = "dialogform/page.html"
-    
-    def setup(self, request, *args, **kwargs):
-        if 'admin' in kwargs:
-            self.extends = "dialogform/demo/page_catalog.html"
-        super().setup(request, *args, **kwargs)
 
 
 class NoteSelectTags(DialogFormMixin, UpdateView):

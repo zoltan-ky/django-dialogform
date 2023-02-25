@@ -46,7 +46,7 @@ class NoteAdmin(admin.ModelAdmin):
 
     # Admin function that display the note content field annotated with any tags
     # and a popup tags dialog. A concatenation of iframe note and tags edit dialogs
-    @admin.display(description="Note/Tags (iframe-dialog/dialog)")
+    @admin.display(description="Note/Tags (iframe-dialog)")
     def noteandtags(self, note):
         tags = note.tags.all()
         tags_html = ','.join([f'{tag.name}' for tag in tags])

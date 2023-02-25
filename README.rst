@@ -65,13 +65,6 @@ Using Dialogform
 
 As usual, add ``'dialogform',`` to ``INSTALLED_APPS`` in your project's ``settings.py``.
 
-For ``dialog/iframe`` type dialogs, if the jsi18n catalog is not already loaded by other means, add:
-
-::
-
-   path('dialogform/', include('dialogform.urls')),
-
-to your project ``urls.py``, and extend your template from ``dialogform/page_catalog.html`` instead of ``dialogform/page.html`` (see Views below).
 
 Forms
 ^^^^^
@@ -94,8 +87,8 @@ If there's no 'autofocus` field in the form, the ``OK`` button gets the focus. T
 
 
 
-Views
-^^^^^
+Views and Templates
+^^^^^^^^^^^^^^^^^^^
 
 To convert a view to a dialog view:
 
@@ -117,12 +110,13 @@ The template (e.g ``sometemplate.html``) extends one of the following templates 
 +===============+=================+=================+
 |dialog         |           dialog.html             |
 +---------------+-----------------+-----------------+
-|dialog/iframe  |  page.html      |  admin_base.html|
+|dialog/iframe  |  page.html      | std admin templates|
 +---------------+-----------------+-----------------+
 
-Templates derived from ``dialog.html`` are designed to render a document fragment within a ``<dialog>`` containing a single ``<form>`` element as described under Forms above.
+Templates derived from ``dialog.html`` are designed to render a document fragment within a ``<dialog>`` element containing a single ``<form>`` element as described under Forms above.
 
 The dialog templates required for ``dialog/iframe`` should be complete html documents that, if needed, could also be used to render a non-dialog, regular view. The ``is_dialog`` template context variable can be used within the template to differentiate.
+
 
 Dialog Template Extension Blocks
 ''''''''''''''''''''''''''''''''
@@ -246,6 +240,14 @@ The demo app ``Notes`` list view contains ``NoteChange`` and ``NoteChangeIframe`
 Both of these views have an optional ``admin`` boolean keyword argument indicating the form (``NoteForm`` or ``Note4AdminForm``) to be used by the dialog view.  This ``admin`` argument is set by the request url (``demo/urls.py``).
 
 These views also select the base template that ``dialogform/demo/note_form.html`` extends by setting the ``dialogform_template``.  This technique is pure convenience to minimize code duplication and view reuse within and without admin.
+
+With the admin, for ``dialog/iframe`` type dialogs, if the jsi18n catalog is not already loaded by other means, add:
+
+::
+
+   path('dialogform/', include('dialogform.urls')),
+
+to your project ``urls.py``, and extend your template from ``dialogform/page_catalog.html`` instead of ``dialogform/page.html`` (see Views below).
 
 
 Admin-widgets Used in the Demo 

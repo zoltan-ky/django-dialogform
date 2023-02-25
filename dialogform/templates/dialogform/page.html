@@ -14,12 +14,12 @@ the dialog form itself.
 <html>
   <head>
     <meta http-equiv="Content-Style-Type" content="text/css"/>
-    {% block extrahead %}
+    {% block dialog-media %}
     {{ form.media }}
     {% include "dialogform/include/anchor_media.html" %}{# in case form refers to dialog-anchors #}
     {% endblock %}
   </head>
-  <body>
+  <body style="margin:0">
     <div class="dialogform-dialog">
       {% block dialog-content %}
         {% include "dialogform/include/form_table.html" %}

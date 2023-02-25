@@ -61,7 +61,18 @@ class SearchForm(forms.Form):
         js=('dialogform/demo/js/search.js',)
 
 
-class Note4AdminForm(NoteForm):
+# There's no django 'AdminForm' to provide the media necessary for admin except
+# through ModelAdmin, so here's a utility mixin to be used for dialog forms with
+# Admin widgets.
+class MetaModel(models.Model): pass
+
+class DialogAdminFormMixin(DialogMixin):
+    class Media:
+        js = admin.ModelAdmin(MetaModel,admin.sites.site).media._js
+        # Todo: merge css dict from ModelAdmin if/when it becomes non-empty
+
+
+class Note4AdminForm(DialogAdminFormMixin, NoteForm):
     parents = forms.ModelMultipleChoiceField(
         required=False, queryset=Note.objects.all(),
         widget = RelatedFieldWidgetWrapper(
@@ -74,8 +85,9 @@ class Note4AdminForm(NoteForm):
             can_add_related=True)
     )
     class Media:
-        js = ['dialogform/demo/js/admin_cleanup.js']
-        # to clean up admin datetime shortcuts from document after closing
+        js = ['dialogform/demo/js/admin_cleanup.js']  # to clean up admin
+                                                      # datetime shortcuts from
+                                                      # document after closing
         
     class Meta(NoteForm.Meta):
         model = Note

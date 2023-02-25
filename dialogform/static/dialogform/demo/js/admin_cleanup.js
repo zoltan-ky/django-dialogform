@@ -1,12 +1,9 @@
 function admin_cleanup() {
-    let boxes = document.querySelectorAll('.calendarbox.module');
-    for (let b of boxes) {
-        for (let child of b.querySelectorAll('*')) child.remove();
-        b.remove();
-    }
-    boxes = document.querySelectorAll('.clockbox.module');
-    for (let b of boxes) {
-        for (let child of b.querySelectorAll('*')) child.remove();
-        b.remove();
+    let elements = Array.from(document.querySelectorAll('.calendarbox.module')).concat(
+        Array.from(document.querySelectorAll('.clockbox.module'))).concat(
+            Array.from(document.querySelectorAll('body > span.select2-container')));
+    for (let element of elements) {
+        for (let child of element.querySelectorAll('*')) child.remove();
+        element.remove();
     }
 }
