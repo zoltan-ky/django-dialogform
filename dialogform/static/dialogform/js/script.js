@@ -83,8 +83,8 @@ class BaseDialog {
         for (const entry of entries) {
             let h = (entry.borderBoxSize) ? entry.borderBoxSize[0].blockSize: 0,
                 w = (entry.borderBoxSize) ? entry.borderBoxSize[0].inlineSize: 0;
-            if (h > this.maxHeight) this.maxHeight = Math.ceil(h);
-            if (w > this.maxWidth)  this.maxWidth  = Math.ceil(w);
+            if (h > this.maxHeight) this.maxHeight = h;
+            if (w > this.maxWidth)  this.maxWidth  = w;
             this.console_log(`resizeObserver entry.target:${entry.target.tagName}.${entry.target.classList} (${w} x ${h})`);
             if (entry.target === this.topElement) {
                 if (!h || !w) {
@@ -93,28 +93,13 @@ class BaseDialog {
                     this.maxHeight = this.maxWidth = 0; // in case this gets reopened
                     this.topElement = null;
                 } else {
-                    var maxWidth =  this.maxWidth,
-                        maxHeight = this.maxHeight;
+                    var maxWidth =  Math.ceil(this.maxWidth),
+                        maxHeight = Math.ceil(this.maxHeight);
                     this.console_log(`resizeobserver at topElement, ${maxWidth} x ${maxHeight}`);
                     if ('iframe' in this) {
                         this.iframe.style.minHeight = `${maxHeight}px`; // inner doc no border/padding
                         this.iframe.style.minWidth  = `${maxWidth}px`;
                     }
-                    maxHeight += 8+2*16+1;
-                    maxWidth +=  1+2*16+1;
-
-                    const vp_rect = document.documentElement.getBoundingClientRect();
-                    if (maxHeight > vp_rect.height) {
-                        maxHeight = vp_rect.height;
-                        this.console_log(`resizeObserver: reduce height to ${maxHeight} to fit visualViewPort`);
-                    }
-                    if (maxWidth > vp_rect.width) {
-                        maxWidth = vp_rect.width;
-                        this.console_log(`resizeObserver: reduce width to ${maxWidth} to fit visualViewPort`);
-                    }
-                    this.dialog.style.minHeight = `${maxHeight}px`;
-                    this.dialog.style.minWidth =  `${maxWidth}px`;
-                    this.console_log(`resize dialog: ${maxWidth} x ${maxHeight} including padding and borders.`);
                     this.place_dialog();
                 }
             }
@@ -124,10 +109,11 @@ class BaseDialog {
     okButtonSelector = '.dialogform-buttons button[value=confirm]';
     
     setup_resize_form() {
-        let button = this.form.querySelector(this.okButtonSelector);
-        for (let el = button; !(el === this.form); el = el.parentElement) {
-            this.resizeObserver.observe(el);
-        }
+        // let button = this.form.querySelector(this.okButtonSelector);
+        // for (let el = button; !(el === this.form); el = el.parentElement) {
+        //     this.resizeObserver.observe(el);
+        // }
+        this.resizeObserver.observe(this.form);
     }
 
     setup_resize_dialog() {
@@ -154,6 +140,7 @@ class BaseDialog {
         this.console_log(`place_dialog: top: ${top}, left: ${left}, w x h: ${dialog_rect.width} x ${dialog_rect.height}`);
         this.dialog.style.top  = `${top}px`;
         this.dialog.style.left = `${left}px`;
+        this.dialog.style.opacity = 1;
     }
     
     setup_drag(dragged) {
@@ -267,7 +254,6 @@ class BaseDialog {
         }
         this.clear_container(dialog_container);
         this.remove_container(dialog_container);
-        // if provided, invoke dialog cleanup function
         if ('cleanup' in anchor.dataset && anchor.dataset.cleanup in globalThis) {
             globalThis[anchor.dataset.cleanup]();
         }
@@ -289,6 +275,7 @@ class IFrameDialog extends BaseDialog {
         const dialog = document.createElement('dialog');
         this.dialog = dialog;
         dialog.classList = 'dialogform-iframe';
+        dialog.style.opacity = 0;
         const iframe = document.createElement('iframe');
         this.iframe = iframe;   // save (e.g for drag ops)
         dialog.appendChild(iframe);
@@ -329,6 +316,7 @@ class LocalDialog extends BaseDialog {
     
     async create_dialog(dialog_container) {
         const dialog = document.querySelector(this.anchor.dataset.url);
+        dialog.style.opacity = 0;
         let button;
         // Basic checks
         if (dialog) {
@@ -377,6 +365,7 @@ class DialogDialog extends BaseDialog {
         //  Basic dialogform verification
         let button;
         const dialog = dialog_container.children[0];
+        dialog.style.opacity = 0;
         if (dialog.tagName !== "DIALOG") {
             error(`django template not extended from dialogform/dialog.html?`);
         }
@@ -403,10 +392,10 @@ class DialogDialog extends BaseDialog {
                 let type = medium.getAttribute("type");
                 if (type) newscript.type = type;
                 newscript.addEventListener('error', (e) => {
-                    console.log(`${newscript.src} load failed!\n`);
+                    this.console_log(`${newscript.src} load failed!\n`);
                     loaded(true);});
                 newscript.addEventListener('load',  (e) => {
-                    console.log(`${newscript.src} loaded.\n`);
+                    this.console_log(`${newscript.src} loaded.\n`);
                     loaded(true);});
                 document.head.appendChild(newscript);
                 newscript.src = DialogDialog.urlpathname(medium.src);
