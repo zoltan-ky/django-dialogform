@@ -17,7 +17,7 @@ Dialog elements and their content forms are created and destroyed dynamically fo
 
 The dialogs are non-modal, so they allow for occasional dialog nesting actions (e.g a model-editing dialog that contains an "X" icon that opens another delete-confirmation dialog), or some other link to create an intermediate or new model to be referred to), if such links are present in the dialog.
 
-The dialog views are regular django _form_ views annotated by dialogform mixins. ``dialog-anchor`` elements take the role of anchor (<a>) elements that are inserted into view templates to open dialog view urls.
+The dialog views are regular django *form* views annotated by dialogform mixins. ``dialog-anchor`` elements take the role of anchor (<a>) elements that are inserted into view templates to open dialog view urls.
 
 Dialogform form and view templates may also be used within the Admin and contain Admin widgets.
 
@@ -105,13 +105,13 @@ To convert a view to a dialog view:
 
 The template (e.g ``sometemplate.html``) extends one of the following templates depending on the View (Admin or not) and dialog type required:
 
-+---------------+-----------------+-----------------+                             
-|View/dialog-type  |  Gen. Views     |    Admin Views  |
-+===============+=================+=================+
-|dialog         |           dialog.html             |
-+---------------+-----------------+-----------------+
-|iframe         |  page.html      | std admin templates|
-+---------------+-----------------+-----------------+
++----------------+-----------------+-----------------+                             
+|View/dialog-type|  Gen. Views     |    Admin Views  |
++================+=================+=================+
+|dialog          |           dialog.html             |
++----------------+-----------------+-----------------+
+|iframe          |  page.html      | std admin templates|
++----------------+-----------------+-----------------+
 
 Templates derived from ``dialog.html`` are designed to render a document fragment within a ``<dialog>`` element containing a single ``<form>`` element as described under Forms above.  These views/urls should be invoked by ``dialog`` anchor types.
 
@@ -266,6 +266,7 @@ These need to be modified to be used with ``iframe``-type dialogs as these types
 The modification involves eliminating non-form related admin blocks within the standard admin templates and adding the dialog-required 'Cancel' and 'OK' buttons. The included ``dialogform/templates/dialogform/demo/admin_note_change.html`` is an example, it extends the standard ``admin/change_form.html`` template:
 
 ::
+   
     {% extends "admin/change_form.html" %}
 
     {# Eliminate non-form page elements #}
@@ -295,6 +296,7 @@ The modification involves eliminating non-form related admin blocks within the s
 and is referred to from ``NoteAdmin`` (``demo/admin.py``) as:
 
 ::
+   
    ...
    add_form_template = "admin/change_form.html"
    change_form_template = "dialogform/demo/admin_note_change.html"
