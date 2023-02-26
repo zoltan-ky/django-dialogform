@@ -101,7 +101,7 @@ form.dialogform {
     width: fit-content;
     height: fit-content;
 }
-div.dialogform-buttons > button {
+.dialogform-buttons button {
     margin: 8px;
     background: var(--_dialog-background); /* from dialogform */
     color:      var(--_dialog-color);

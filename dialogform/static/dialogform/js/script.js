@@ -8,7 +8,10 @@ class BaseDialog {
         this.listeners = [];
     }
 
-    
+    dialogTagName = "DIALOG";
+    dialogButtonsSelector = '.dialogform-buttons button';
+    okButtonSelector = this.dialogButtonsSelector + '[value=confirm]';
+
     // Utility function to fetch response header *and* body:
     async fetchall(url, options) {
         const response = await fetch(url, options);
@@ -47,23 +50,43 @@ class BaseDialog {
         for (let child of container.querySelectorAll('*')) child.remove();
     }
     
-    remove_container(container) {
+    remove_container(container, dialog) {
         container.remove();
     }
+
+    check_dialog(dialog) {
+        //  Basic dialogform verification. Sets this.form if successful
+        if (dialog.tagName !== this.dialogTagName) {
+            throw new Error(`django template not extended from dialogform/dialog.html?`);
+        }
+        if (!(this.form = dialog.querySelector('form')) ||
+            !(dialog.querySelector(this.okButtonSelector))) {
+            throw new Error(`django dialogform not extended from dialogform/include/form.html; missing required button(s)?`);
+        }
+    }
+
+    load_form_media(dialog) {}
     
     hook_listener_fn() {
         const listeners = this.listeners;
-        EventTarget.prototype.originalAddEventListener = EventTarget.prototype.addEventListener;
-        
         const newAddEventListener = function (event, fn, ...args) {
             this.originalAddEventListener(event, fn, ...args);
             listeners.push({obj: this, event: event, fn: fn, args: args});
         };
-        EventTarget.prototype.addEventListener = newAddEventListener;
+        if (!('originalAddEventListener' in EventTarget.prototype)) {
+            EventTarget.prototype.originalAddEventListener = EventTarget.prototype.addEventListener;
+            EventTarget.prototype.addEventListener = newAddEventListener;
+            this.console_log('newAddEventListener hooked');
+        }
     }
 
     unhook_listener_fn() {
-        EventTarget.prototype.addEventListener = EventTarget.prototype.originalAddEventListener;
+        if ('originalAddEventListener' in EventTarget.prototype &&
+            EventTarget.prototype.addEventListener !== EventTarget.prototype.originalAddEventListener) {
+            EventTarget.prototype.addEventListener = EventTarget.prototype.originalAddEventListener;
+            delete EventTarget.prototype.originalAddEventListener;
+            this.console_log('newAddEventListener: original restored');
+        }
     }
     
     remove_listeners() {
@@ -72,61 +95,31 @@ class BaseDialog {
                 l.obj.removeEventListener(l.event, l.fn, ...l.args);
             }
         }
+        this.console_log(`${this.listeners.length} listeners removed.`);
         delete this.listeners;
         this.listeners = [];
     }
-    
-    maxHeight = 0;
-    maxWidth = 0;
-    topElement = null;
+
     resizeObserver = new ResizeObserver((entries) => {
+        let topElement = null;
         for (const entry of entries) {
-            let h = (entry.borderBoxSize) ? entry.borderBoxSize[0].blockSize: 0,
-                w = (entry.borderBoxSize) ? entry.borderBoxSize[0].inlineSize: 0;
-            if (h > this.maxHeight) this.maxHeight = h;
-            if (w > this.maxWidth)  this.maxWidth  = w;
-            this.console_log(`resizeObserver entry.target:${entry.target.tagName}.${entry.target.classList} (${w} x ${h})`);
-            if (entry.target === this.topElement) {
-                if (!h || !w) {
-                    this.console_log(`resizeObserver at topElement, not visible, disconnecting.`);
-                    this.resizeObserver.disconnect();
-                    this.maxHeight = this.maxWidth = 0; // in case this gets reopened
-                    this.topElement = null;
-                } else {
-                    var maxWidth =  Math.ceil(this.maxWidth),
-                        maxHeight = Math.ceil(this.maxHeight);
-                    this.console_log(`resizeobserver at topElement, ${maxWidth} x ${maxHeight}`);
-                    if ('iframe' in this) {
-                        this.iframe.style.minHeight = `${maxHeight}px`; // inner doc no border/padding
-                        this.iframe.style.minWidth  = `${maxWidth}px`;
-                    }
-                    this.place_dialog();
-                }
-            }
+            topElement = entry.target;
+        }
+        if (topElement.parentElement) {
+            this.place_dialog(topElement.parentElement); // dialog
+        } else {
+            this.resizeObserver.disconnect(); // dialog done
         }
     });
 
-    okButtonSelector = '.dialogform-buttons button[value=confirm]';
-    
-    setup_resize_form() {
-        // let button = this.form.querySelector(this.okButtonSelector);
-        // for (let el = button; !(el === this.form); el = el.parentElement) {
-        //     this.resizeObserver.observe(el);
-        // }
-        this.resizeObserver.observe(this.form);
-    }
-
-    setup_resize_dialog() {
-        this.setup_resize_form();
-        for (let el = this.form; !(el === this.dialog); el = el.parentElement) {
-            this.resizeObserver.observe(el);
-            this.topElement = el;
-        }
+    setup_resize_dialog(dialog) {
+        let topElement = dialog.querySelector('div.dialogform-content');
+        this.resizeObserver.observe(topElement);
     }
     
-    place_dialog() {
+    place_dialog(dialog) {
         const anchor_rect = this.anchor.getBoundingClientRect();
-        var dialog_rect = this.dialog.getBoundingClientRect();
+        var dialog_rect = dialog.getBoundingClientRect();
         const vp_rect = document.documentElement.getBoundingClientRect();
         // Center vertically relative to anchor
         let top =  Math.max(10, anchor_rect.top - dialog_rect.height / 2);
@@ -138,9 +131,9 @@ class BaseDialog {
         left = Math.round(
             Math.max(0,left + Math.min(0, vp_rect.right - left - dialog_rect.width - 10)));
         this.console_log(`place_dialog: top: ${top}, left: ${left}, w x h: ${dialog_rect.width} x ${dialog_rect.height}`);
-        this.dialog.style.top  = `${top}px`;
-        this.dialog.style.left = `${left}px`;
-        this.dialog.style.opacity = 1;
+        dialog.style.top  = `${top}px`;
+        dialog.style.left = `${left}px`;
+        dialog.style.opacity = 1;
     }
     
     setup_drag(dragged) {
@@ -179,24 +172,26 @@ class BaseDialog {
         const anchor = this.anchor;
         const url = anchor.dataset.url;
         const dialog_container = this.get_container();
+        var dialog = null;
         this.response = null;
         
         for (let done = false; !done ;) {
 
-            this.clear_container(dialog_container);
             this.hook_listener_fn();
-            await this.create_dialog(dialog_container);
-            this.setup_resize_dialog();
+            dialog = await this.create_dialog(dialog_container);
+            this.check_dialog(dialog);
+            this.load_form_media(dialog);
+            this.setup_resize_dialog(dialog);
             let el = this.autofocus(this.form);
             await new Promise((focused) => {
                 el.addEventListener('focus', () => focused(true),{ once: true });
-                this.dialog.show();
+                dialog.show();
                 el.focus();         // in case it's alredy presented
             });
             this.form_method = this.form.getAttribute("method");
             this.form.setAttribute("method","dialog");
             let formClose = await new Promise((finished) => {
-                const buttons = this.form.querySelectorAll(".dialogform-buttons button");
+                const buttons = this.form.querySelectorAll(this.dialogButtonsSelector);
                 for (const button of buttons) {
                     button.addEventListener('click', event => {
                         event.preventDefault();
@@ -221,7 +216,7 @@ class BaseDialog {
                     finished({ value: 'confirm', target: event.target});
                 });
             });
-            this.dialog.close();
+            dialog.close();
             this.unhook_listener_fn();
             this.remove_listeners();
             
@@ -251,9 +246,9 @@ class BaseDialog {
                     window.location.assign(formAction.pathname + '?' + search.toString());
                 }
             }
+            this.clear_container(dialog_container);
         }
-        this.clear_container(dialog_container);
-        this.remove_container(dialog_container);
+        this.remove_container(dialog_container, dialog);
         if ('cleanup' in anchor.dataset && anchor.dataset.cleanup in globalThis) {
             globalThis[anchor.dataset.cleanup]();
         }
@@ -262,23 +257,69 @@ class BaseDialog {
 
 class IFrameDialog extends BaseDialog {
 
-    setup_resize_dialog() {
+    dialogTagName = "DIV";
+    
+    maxHeight = 0;
+    maxWidth = 0;
+    topElement = null;
+    resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+            let h = (entry.borderBoxSize) ? entry.borderBoxSize[0].blockSize: 0,
+                w = (entry.borderBoxSize) ? entry.borderBoxSize[0].inlineSize: 0;
+            if (h > this.maxHeight) this.maxHeight = h;
+            if (w > this.maxWidth)  this.maxWidth  = w;
+            this.console_log(`resizeObserver entry.target:${entry.target.tagName}.${entry.target.classList} (${w} x ${h})`);
+            if (entry.target === this.topElement) {
+                if (!h || !w) {
+                    this.console_log(`resizeObserver at topElement, not visible, disconnecting.`);
+                    this.resizeObserver.disconnect();
+                    this.maxHeight = this.maxWidth = 0; // in case this gets reopened
+                    this.topElement = null;
+                } else {
+                    var maxWidth =  Math.ceil(this.maxWidth),
+                        maxHeight = Math.ceil(this.maxHeight);
+                    this.console_log(`resizeobserver at topElement, ${maxWidth} x ${maxHeight}`);
+                    if ('iframe' in this) {
+                        this.iframe.style.minHeight = `${maxHeight}px`; // inner doc no border/padding
+                        this.iframe.style.minWidth  = `${maxWidth}px`;
+                    }
+                    this.place_dialog(this.topElement.parentElement); // dialog
+                }
+            }
+        }
+    });
+
+    check_dialog(dialog) {
+        let iframe = dialog.querySelector('iframe');
+        const div = iframe.contentDocument.querySelector('.dialogform-dialog');
+        if (!div) {
+            throw new Error('django dialog/iframe template missing div.dialogform-dialog - ' +
+                            'template not extended from dialogform/page.html?');
+        }
+        super.check_dialog(div);
+    }
+    
+    setup_resize_form() {
+        this.resizeObserver.observe(this.form);
+    }
+
+    setup_resize_dialog(dialog) {
         this.setup_resize_form();
         for (let el = this.form; el; el = el.parentElement) {
             this.resizeObserver.observe(el);
         }
-        this.resizeObserver.observe(this.iframe);
-        this.topElement = this.iframe;
+        let iframe = dialog.querySelector('iframe');
+        this.resizeObserver.observe(iframe);
+        this.topElement = iframe;
     }
     
     async create_dialog(dialog_container) {
         const dialog = document.createElement('dialog');
-        this.dialog = dialog;
         dialog.classList = 'dialogform-iframe';
-        dialog.style.opacity = 0;
         const iframe = document.createElement('iframe');
         this.iframe = iframe;   // save (e.g for drag ops)
         dialog.appendChild(iframe);
+        dialog.style.opacity = 0;
         dialog_container.appendChild(dialog);
 
         // Load...
@@ -292,15 +333,6 @@ class IFrameDialog extends BaseDialog {
                 iframe.src = this.anchor.dataset.url; 	// get a new dialogform
             }
         });
-        // Basic integrity checks
-        const div = iframe.contentDocument.querySelector('.dialogform-dialog');
-        const dialogButton = iframe.contentDocument.querySelector(this.okButtonSelector);
-        this.form = dialogButton.form;
-        if (!div || typeof this.form == "undefined") {
-            dialog_container.remove(); // clean up and complain
-            throw new Error('django dialogform not extended from dialogform template(s)?');
-        }
-        // this.setup_drag(dialog);
         return dialog;
     }
 }
@@ -309,32 +341,26 @@ class LocalDialog extends BaseDialog {
 
     clear_container(container) {}
     
-    remove_container(container) {
-        this.originalParent.appendChild(this.dialog);
+    remove_container(container, dialog) {
+        this.originalParent.appendChild(dialog);
         super.remove_container(container);
+    }
+
+    check_dialog(dialog) {
+        super.check_dialog(dialog);
+        if (form.method.toLowerCase() != "get") {
+            throw new Error(`django dialogform LocalDialog method must be "get", others not supported`);
+        }
     }
     
     async create_dialog(dialog_container) {
-        const dialog = document.querySelector(this.anchor.dataset.url);
-        dialog.style.opacity = 0;
-        let button;
-        // Basic checks
-        if (dialog) {
-            this.dialog = dialog;
-            this.form = dialog.querySelector('form.dialogform');
-        }
-        if (!dialog || !this.form ||
-            !(button = dialog.querySelector(this.okButtonSelector))) {
-            throw new Error(`django dialogform LocalDialog malformed: dialog:${dialog},` +
-                            `form:${this.form} button: ${button}`);
-        }
-        if (this.form.method.toLowerCase() != "get") {
-            throw new Error(`django dialogform LocalDialog method must be "get", others not supported`);
+        let dialog = document.querySelector(this.anchor.dataset.url);
+        if (!dialog) {
+            throw new Error(`django dialogform LocalDialog can't find url: ${this.anchor.dataset.url}`);
         }
         this.originalParent = dialog.parentElement;
+        dialog.style.opacity = 0;
         dialog_container.appendChild(dialog);
-        
-        // this.setup_drag(dialog);
         return dialog;
     }
 }
@@ -350,31 +376,28 @@ class DialogDialog extends BaseDialog {
     }
     
     async create_dialog(dialog_container) {
-        const error = (message) => {
-            dialog_container.remove();
-            throw new Error(message);
-        }
         // If there's no previous response (rejected form), get it at the
         // dialogform url
-        const response = this.response ? this.response :
+        let response = this.response ? this.response :
               await this.fetchall(this.anchor.dataset.url, { method: 'GET' });
 
         // Create DOM dialog
         dialog_container.insertAdjacentHTML('afterbegin', response.data);
-
-        //  Basic dialogform verification
-        let button;
-        const dialog = dialog_container.children[0];
+        let dialog = dialog_container.children[0];
         dialog.style.opacity = 0;
-        if (dialog.tagName !== "DIALOG") {
-            error(`django template not extended from dialogform/dialog.html?`);
+        return dialog;
+    }
+
+    check_dialog(dialog) {
+        super.check_dialog(dialog);
+        let media_container = dialog.querySelector('.dialogform-media');
+        if (!media_container) {
+            throw new Error('django dialogform missing div.dialogform-media - ' +
+                            'template not extended from dialogform/dialog.html?');
         }
-        if (!(this.form = dialog.querySelector('.dialogform')) ||
-            !(button = dialog.querySelector(this.okButtonSelector))) {
-            error(`django dialogform not extended from dialogform/include/form.html; missing required button(s)?`);
-        }
-        this.dialog = dialog;
-        
+    }
+    
+    async load_form_media(dialog) {
         // load media scripts needed by this form
         const media_container = dialog.querySelector('.dialogform-media');
         const documentScripts = Array.from(document.head.querySelectorAll("script"));
@@ -384,7 +407,6 @@ class DialogDialog extends BaseDialog {
             let m = documentScripts.find(s => s.src === medium.src);
             if (m) m.remove();
         }
-        
         // Load media in a synchronous sequence preserving list order
         for (const medium of media) {
             await new Promise((loaded) => {
@@ -401,10 +423,8 @@ class DialogDialog extends BaseDialog {
                 newscript.src = DialogDialog.urlpathname(medium.src);
             });
         }
-        window.document.dispatchEvent(new Event('DOMContentLoaded'));
+        window.document.dispatchEvent(new Event('DOMContentLoaded', {bubbles: true}));
         window.dispatchEvent(new Event('load'));
-        // this.setup_drag(dialog);
-        return dialog;
     }
 }
 
