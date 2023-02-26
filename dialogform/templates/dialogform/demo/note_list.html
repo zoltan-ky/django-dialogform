@@ -22,20 +22,19 @@ Includes media required to instantiate dialog 'anchors' and basic demo app styli
     <h2>Dialog Form Demo Page</h2>
     
     <p class="notes-links">{{ note_list.count }} Note{{ note_list.count|pluralize }}:</p>
-    <p>Here is a <em>local</em> <span class="dialog-anchor" data-url="#local_note_dialog"><span>Search dialog</span></span>.</p>
-    <p>Each column of the table below shows a different editing dialog type for the rows of notes.</p>
+    <p>Here is a <em>local</em> <span class="dialog-anchor" data-url="#local_note_dialog"><span>Search dialog</span></span> example.</p>
+    <p>Each column of the table below shows a different editing dialog type for the rows of notes. The form for the third and fourth columns below uses admin widgets - but note: for these to work properly you should log into admin first (see below). The dialogs of the third column have to load all the admin core stylesheets and javascript so they affect the referring page display while the dialogs are open. Fourth column dialogs load into an iframe so the referring page is not affected.</p>
     <p><a href="{% url 'admin:demo_note_changelist' %}">Go to Notes in Admin</a>
       to see dialog-anchor demos within the admin environment and to add/remove Notes or Tags.
-      Login as <b>admin</b>/<b>admin</b>  New notes can also be added using the admin "+" related widget wrapper within the dialogs.
-    </p>
-    <p> The form for the third and fourth columns below uses admin widgets - but note: for these to work properly you should log into admin first. The dialogs of the third column have to load all the admin core stylesheets and javascript so they affect the referring page display while the dialogs are open. Fourth column dialogs load into an iframe so the referring page is not affected.</p>
+      Login as <b>admin</b>/<b>admin</b></p>
+    <p>New notes can also be added using the admin "+" related widget wrapper within the dialogs.</p>
     <br><br>
     <table class="note-list" style="position:relative;">
       <tr>
-        <th scope="col">Note and Tag Select Dialogs</th>
-        <th scope="col">Note Dialog/<br>iframe</th>
+        <th scope="col">Note and <br>Tag Select Dialogs</th>
+        <th scope="col">Note Iframe/<br>dialog</th>
         <th scope="col">Note Dialog<br>with admin widgets</th>
-        <th scope="col">Note Dialog/iframe<br>with admin widgets</th>
+        <th scope="col">Note Iframe dialog<br>with admin widgets</th>
         <th scope="col">Date</th><th scope="col">Published</th>
       </tr>
       
@@ -65,13 +64,13 @@ Includes media required to instantiate dialog 'anchors' and basic demo app styli
           </td>
           <td>
             <div class="dialog-anchor" data-url="{% url 'note-edit-admin' pk=note.pk %}"
-                 title="Dialog/iframe Edit with admin widgets"
+                 title="Dialog Edit with admin widgets"
                  data-cleanup="admin_cleanup">
               <span>{{ note.content }}</span></div>
           </td>
           <td>
             <div class="dialog-anchor" data-url="{% url 'note-iframe-admin' pk=note.pk %}"
-                 title="Dialog/iframe Edit with admin widgets"
+                 title="Iframe Edit with admin widgets"
                  data-type="iframe"
                  data-cleanup="admin_cleanup">
               <span>{{ note.content }}</span></div>

@@ -348,7 +348,7 @@ class LocalDialog extends BaseDialog {
 
     check_dialog(dialog) {
         super.check_dialog(dialog);
-        if (form.method.toLowerCase() != "get") {
+        if (this.form.method.toLowerCase() != "get") {
             throw new Error(`django dialogform LocalDialog method must be "get", others not supported`);
         }
     }
