@@ -105,16 +105,14 @@ To convert a view to a dialog view:
 
 The template (e.g ``sometemplate.html``) extends one of the following templates depending on the View (Admin or not) and dialog type required:
 
-.. table ::
-   :align: center, center, center
-   
-   ================  =============  ===========                    
-   View/dialog-type  Gen. Views     Admin Views
-   ================  =============  ===========
-   dialog                 dialog.html                 
-   ----------------  --------------------------
-   iframe            page.html      std admin templates
-   ================  =============  ===========
+================  =============  ===========                    
+View/dialog-type  Gen. Views     Admin Views
+================  =============  ===========
+dialog            dialog.html                 
+----------------  --------------------------
+iframe            page.html      std admin
+                                 templates
+================  =============  ===========
 
 
 Templates derived from ``dialog.html`` are designed to render a document fragment within a ``<dialog>`` element containing a single ``<form>`` element as described under Forms above.  These views/urls should be invoked by ``dialog`` anchor types.
