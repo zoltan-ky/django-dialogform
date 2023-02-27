@@ -107,7 +107,7 @@ The template (e.g ``sometemplate.html``) extends one of the following templates 
 
 +----------------+-----------------+---------------------+                             
 |View/dialog-type|  Gen. Views     |    Admin Views      |
-+================+=================+=====================+
++ :============: +=================+=====================+
 |dialog          |           dialog.html                 |
 +----------------+-----------------+---------------------+
 |iframe          |  page.html      | std admin templates |
