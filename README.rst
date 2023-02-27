@@ -11,7 +11,7 @@ Three different dialog template options are included:
 
 2) ``iframe`` - creates an ``<iframe>`` element within the ``<dialog>`` and loads the form and its associated media as a complete html iframe contentDocument;
 
-3) ``local`` - handles the presentation of a ``<dialog>`` element with a form that is part of the loaded document.
+3) ``local`` - handles the presentation of a ``<dialog>`` element with a form that are part of the document already loaded.
 
 Dialog elements, their content forms and media are created and destroyed dynamically for the first two options.
 
