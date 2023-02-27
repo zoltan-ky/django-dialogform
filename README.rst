@@ -156,7 +156,7 @@ Anchors
 Anchors are ``div`` (block)  or ``span`` (inline) elements with ``class="dialog-anchor"`` and a few attributes desribed below.  The anchor content should either be an ``<img>`` element or a ``<span>`` containing some text.
 
 data-url attribute
-..................
+''''''''''''''''''
 
 Dialogform javascript processes ``dialog-anchors`` that serve the role of ``<a>`` link elements within referring views::
    
@@ -166,7 +166,7 @@ Dialogform javascript processes ``dialog-anchors`` that serve the role of ``<a>`
 
 
 data-type attribute
-...................
+'''''''''''''''''''
 
 For ``iframe``-type dialogs add the ``data-type`` attribute::
    
@@ -177,7 +177,7 @@ For ``iframe``-type dialogs add the ``data-type`` attribute::
 For ``local``type dialogs ``data-type`` should predictably be set to ``local``.
 
 data-cleanup attribute
-......................
+''''''''''''''''''''''
 Sometimes forms or widgets leave behind artefacts generated during form/widget instantiation. An example of this is ``AdminSplitDateTime`` widget that leaves behind `#calendarbox` and `#clockbox` divs in the document body.  Normally this is not a problem since after a valid form is submitted a new document will be loaded.  However, if the dialogform is cancelled, it's anchor may have an optional ``data-cleanup`` attribute that names a global javascript function, loaded with the document or dialogform media that is invoked without parameters after closing the dialog. An example from ``note_list.html``::
 
    <div class="dialog-anchor" data-url="{% url 'note-iframe-admin' pk=note.pk %}"
