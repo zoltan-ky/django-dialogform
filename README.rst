@@ -108,7 +108,7 @@ To convert a view to a dialog view:
 The template (e.g ``sometemplate.html``) should extend one of the following templates depending on the View (Admin or not) and dialog type required:
 
 +----------------+-----------------+--------------------+                             
-|View/dialog-type|  Gen. Views     |    Admin Views     |
+|View/dialog-type|   App Views     |    Admin Views     |
 +================+=================+====================+
 |dialog          |           dialog.html                |
 +----------------+-----------------+--------------------+
