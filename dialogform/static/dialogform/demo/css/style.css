@@ -3,16 +3,24 @@
  */
 @media (prefers-color-scheme: light) {
     :root {
-        --_dialog_background:       var(--dialog-background, var(--body-bg, white));
-        --_dialog-background-hover: var(--dialog-background-hover,          #FAEBD7);
+        --_dialog-background:       var(--dialog-background, var(--body-bg, #FFFEF8));
         --_dialog-color:            var(--dialog-color,      var(--body-fg, #002040));
+        --_dialog-background-hover: var(--dialog-background-hover,          #E8DCC8);
+    }
+    sup {
+        font-size: smaller;
+        color: #BA0;
     }
 }
 @media (prefers-color-scheme: dark) {
     :root {
-        --_dialog-background:       var(--dialog-background, var(--body-bg, black));
-        --_dialog-background-hover: var(--dialog-background-hover,          #404040);
+        --_dialog-background:       var(--dialog-background, var(--body-bg, #162432));
         --_dialog-color:            var(--dialog-color,      var(--body-fg, #FAEBD7));
+        --_dialog-background-hover: var(--dialog-background-hover,          #404040);
+    }
+    sup {
+        font-size: smaller;
+        color: #CC0;
     }
 }
 html {
@@ -25,10 +33,6 @@ div.noteandtags {
     font-size: 1rem;
 }
 
-sup {
-    color: #CC0;
-}
-
 input, textarea, select, button {
     background: var(--_dialog-background); /* from dialogform */
     color:      var(--_dialog-color);
@@ -37,4 +41,15 @@ input, textarea, select, button {
 td {
     padding: 0.25em 1em;
     vertical-align: inherit;
+}
+
+label {
+    float: left;
+}
+legend {
+    padding: 4px;
+}
+
+form div {
+    padding: 8px 0;
 }

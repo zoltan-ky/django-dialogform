@@ -8,7 +8,7 @@ dialog_anchor(s) are
 <dialog {% if dialogform_id %}id="{{ dialogform_id }}"{% endif %} class="dialogform-dialog">
   <div class="dialogform-content">
     {% block dialog-content %}
-      {% include "dialogform/include/form_table.html" %}
+      {% include "dialogform/form.html" %}
     {% endblock %}
   </div>
   <div class="dialogform-media">

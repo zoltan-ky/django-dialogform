@@ -4,14 +4,14 @@
 @media (prefers-color-scheme: light) {
     :root {
         /* Define these taking account of admin's variables as well, if defined */
-        --_dialog-background:       var(--dialog-background, var(--body-bg, white));
-        --_dialog-color:            var(--dialog-color,      var(--body-fg, #002040));
+        --_dialog-background:       var(--dialog-background, var(--body-bg, #FEFDF4));
+        --_dialog-color:            var(--dialog-color,      var(--body-fg, #103050));
         --_dialog-anchor-bg-hover:  var(--dialog-anchor-background-hover,   #FAF1DD);
     }
 }
 @media (prefers-color-scheme: dark) {
     :root {
-        --_dialog-background:       var(--dialog-background, var(--body-bg, black));
+        --_dialog-background:       var(--dialog-background, var(--body-bg, #0C1830));
         --_dialog-color:            var(--dialog-color,      var(--body-fg, #FAEBD7));
         --_dialog-anchor-bg-hover:  var(--dialog-anchor-background-hover,   #50585F);
     }
@@ -29,15 +29,15 @@
  * inline anchors)
  */
 
-div.dialog-anchor {
+.dialog-anchor {
     display:    inline-block;
     box-sizing: border-box;
 }
 
-div.dialog-anchor span {
+.dialog-anchor span {
     text-decoration: none;
 }
-div.dialog-anchor span:hover {
+.dialog-anchor span:hover {
     text-decoration: underline;
     text-underline-position: under;
     text-underline-offset: 0.1em;
@@ -45,17 +45,17 @@ div.dialog-anchor span:hover {
     background: var(--_dialog-anchor-bg-hover);
 }
 
-div.dialog-anchor img {
+.dialog-anchor img {
     height: var(--_icon-size);
     width:  var(--_icon-size);
     min-height: var(--_icon-size);
     min-width:  var(--_icon-size);
 }
 
-div.dialog-anchor .hide {
+.dialog-anchor .hide {
     opacity: 0;
 }
-div.dialog-anchor .hide:hover {
+.dialog-anchor .hide:hover {
     opacity: 1;
 }
 

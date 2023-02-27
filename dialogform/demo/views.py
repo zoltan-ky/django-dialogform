@@ -45,7 +45,6 @@ class NoteChange(DialogFormMixin, UpdateView):
         return context
 
 class NoteChangeIframe(NoteChange):
-    # dialog/iframe document (template_name above):
     extends = "dialogform/page.html"
 
 

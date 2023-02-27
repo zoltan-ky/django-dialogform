@@ -28,7 +28,8 @@ class NoteForm(DialogMixin, forms.ModelForm):
         }
     class Media:
         js = ['dialogform/demo/js/additional.js']
-        css = {'all': ['dialogform/demo/css/additional.css']}
+        css = {'all': ['dialogform/demo/css/style.css',
+                       'dialogform/demo/css/additional.css']}
 
     def clean_content(self):
         value = self.cleaned_data['content']
@@ -55,7 +56,8 @@ class NoteTagsSelectForm(DialogMixin, forms.ModelForm):
         self.instance.tags.set(self.cleaned_data['tags'])
 
 
-class SearchForm(forms.Form):
+class SearchForm(DialogMixin, forms.Form):
+    method = "GET"
     search = forms.CharField(required=False, initial="", widget=forms.TextInput(attrs={'size':15}))
     class Media:
         js=('dialogform/demo/js/search.js',)

@@ -3,17 +3,17 @@ django-dialogform
 
 Overview
 --------
-Django app to open forms within ``<dialog>`` html element popups. These popups are auto-placed relative to their anchor and auto-sized to their content, placed within the referring page viewport area and have no menus or borders for resizing/moving.  This is meant for django forms that wouldn't have a large amount of data, but maybe only present a few fields to modify some attributes of a model, create new relations between models, or run queries, etc., with the referring page in the background waiting for the dialog form to be closed.
+Django app to open forms within ``<dialog>`` element popups. These popups are auto-placed relative to their anchor and auto-sized to their content, placed within the referring page viewport area and have no menus or borders for resizing/moving.  This is meant for django forms that wouldn't have a large amount of data, but maybe only present a few fields to modify some attributes of a model, create new relations between models, or run queries, etc., with the referring page in the background waiting for the dialog form to be closed.
 
 Three different dialog template options are included:
 
-1) ``dialog`` - that displays a form directly within a ``<dialog>`` element in the same html document context where the anchor to it is found;
+1) ``dialog`` - displays a form within a ``<dialog>`` element in the same html document context where its anchor is;
 
-2) ``iframe`` - that creates an ``<iframe>`` element within the ``<dialog>`` and loads the form and all its associated media as a complete content window/document;
+2) ``iframe`` - creates an ``<iframe>`` element within the ``<dialog>`` and loads the form and its associated media as a complete html iframe contentDocument;
 
-3) ``local`` - this option handles the presentation of a ``<dialog>`` element with a form already loaded and present in the document.
+3) ``local`` - handles the presentation of a ``<dialog>`` element with a form that is part of the loaded document.
 
-Dialog elements and their content forms are created and destroyed dynamically for the first two options.
+Dialog elements, their content forms and media are created and destroyed dynamically for the first two options.
 
 The dialogs are non-modal, so they allow for occasional dialog nesting actions (e.g a model-editing dialog that contains an "X" icon that opens another delete-confirmation dialog), or some other link to create an intermediate or new model to be referred to), if such links are present in the dialog.
 
@@ -28,7 +28,7 @@ A simple demo app with all these variations is included in the dialogform/demo s
 Known Limitations
 -----------------
 
-Dialogforms are auto-positioning and -sizing within the viewport. Dialogform media assets are restricted to sameorigin.
+Dialogforms are auto-positioning and -sizing within the viewport. Dialogform media assets are restricted to sameorigin. Tested only with more complex Admin widgets (AdminSplitDateTime, RelatedObjectsWrapper, Autoselect...) and some similar third-party apps like django-addanother, django-autocomplete-light.
 
 
 Installation and Demo
@@ -78,11 +78,13 @@ Forms
     ...
     class SomeForm(DialogMixin,...)
 
-``DialogMixin`` is currently just a marker. 
+``DialogMixin`` adds a ``method`` attribute to ``Form`` (default: "POST") that allows specifying "GET" for query forms that is used for form submission.  During the dialog phase, the form method is always set to ``DIALOG``.
+
+``DialogMixin`` adds a ``render_as`` attribute to ``Form`` (default: "div") that allows selecting the dialogform output style without having to change templates or views. A convenience method ``as_render_as()`` produces the output style selected by ``render_as``. 
 
 ``DialogForm`` is a ``DialogForm(DialogMixin, forms.Form)`` shorthand.
 
-Two buttons controlling the ``<dialog>`` forms, ``Cancel`` and ``OK``, are added by the dialogform form template (see also Templates below).  If saving the form fails, the dialog remains open with the form and errors displayed for correction and either ``Cancel`` or successful ``OK`` saves the form and closes the dialog.  The ``Cancel`` button is only added if the template gets a ``form`` variable, otherwise only the ``OK`` will show to close the dialog.
+Two buttons controlling the ``<dialog>`` forms, ``Cancel`` and ``OK``, are added by the dialogform form template (see Templates below).  If saving the form fails, the dialog remains open with the form and errors displayed for correction. ``Cancel`` or a successful ``OK`` submission closes the dialog.  The ``Cancel`` button is only added if the template gets a ``form`` variable, otherwise only the ``OK`` will show to close the dialog (e.g a minimal message-only dialog).
 
 If there's no 'autofocus` field in the form, the ``OK`` button gets the focus. The dialogs can also be cancelled and closed by ``Esc``.
 
@@ -103,17 +105,17 @@ To convert a view to a dialog view:
 
 ``success_url`` represents the view that the dialog view will be redirected to after the form had been successfully saved.
 
-The template (e.g ``sometemplate.html``) extends one of the following templates depending on the View (Admin or not) and dialog type required:
+The template (e.g ``sometemplate.html``) should extend one of the following templates depending on the View (Admin or not) and dialog type required:
 
-+----------------+-----------------+-----------------+                             
-|View/dialog-type|  Gen. Views     |    Admin Views  |
-+================+=================+=================+
-|dialog          |           dialog.html             |
-+----------------+-----------------+-----------------+
++----------------+-----------------+--------------------+                             
+|View/dialog-type|  Gen. Views     |    Admin Views     |
++================+=================+====================+
+|dialog          |           dialog.html                |
++----------------+-----------------+--------------------+
 |iframe          |  page.html      | std admin templates|
-+----------------+-----------------+-----------------+
++----------------+-----------------+--------------------+
 
-Templates derived from ``dialog.html`` are designed to render a document fragment within a ``<dialog>`` element containing a single ``<form>`` element as described under Forms above.  These views/urls should be invoked by ``dialog`` anchor types.
+Templates derived from ``dialog.html`` are designed to render a document fragment within a ``<dialog>`` element containing a single ``<form>`` element as described under the Overview and Forms above.  These views/urls should be invoked by ``dialog``-type anchors.
 
 Templates for ``iframe``-type dialogs should be derived from ``page.html``.  These are complete html documents that could also be used to render a non-dialog, regular view. The ``is_dialog`` template context variable is set by DialogFormMixin for template use.
 
@@ -138,9 +140,7 @@ dialog-content
 dialog-media
 ............
 
-If some additional media, not captured by the form/widgets media, are required:
-
-::
+If some additional media, not captured by the form/widgets media, are required::
 
    {% extends "dialogform/dialog.html" %}{# or "dialogform/page.html" #}
    {% block dialog-media %}
@@ -153,25 +153,32 @@ If some additional media, not captured by the form/widgets media, are required:
 Anchors
 ^^^^^^^
 
-Dialogform javascript processes ``dialog-anchors`` that serve the role of ``<a>`` link elements within referring views:
+Anchors are ``div`` (block)  or ``span`` (inline) elements with ``class="dialog-anchor"`` and a few attributes desribed below.  The anchor content should either be an ``<img>`` element or a ``<span>`` containing some text.
 
-::
+data-url attribute
+..................
+
+Dialogform javascript processes ``dialog-anchors`` that serve the role of ``<a>`` link elements within referring views::
    
     <div class="dialog-anchor" data-url="{% url 'someapp:some-dialog-view-name' %}" title="some help text">
         <span>Some Anchor Text</span>   **or**:  <img src="some url to an anchor icon" ...>
     </div>
 
-For ``iframe``-type dialogs add the ``data-type`` attribute:
 
-::
+data-type attribute
+...................
+
+For ``iframe``-type dialogs add the ``data-type`` attribute::
    
     <div class="dialog-anchor" data-url="{% url 'someapp:some-dialog-view-name' %}" title="some help text"
          data-type="iframe">
          ...
 
-Sometimes forms or widgets leave behind artefacts generated during form/widget instantiation. An example of this is ``AdminSplitDateTime`` widget that leaves behind #calendarbox and #clockbox divs in the document body.  Normally this is not a problem since after a valid form is submitted a new document will be loaded.  However, if the dialogform is cancelled, it's anchor may have an optional ``data-cleanup`` attribute that names a global javascript function, loaded with the document or dialogform media that is invoked without parameters after closing the dialog. An example from ``note_list.html``:
+For ``local``type dialogs ``data-type`` should predictably be set to ``local``.
 
-::
+data-cleanup attribute
+......................
+Sometimes forms or widgets leave behind artefacts generated during form/widget instantiation. An example of this is ``AdminSplitDateTime`` widget that leaves behind `#calendarbox` and `#clockbox` divs in the document body.  Normally this is not a problem since after a valid form is submitted a new document will be loaded.  However, if the dialogform is cancelled, it's anchor may have an optional ``data-cleanup`` attribute that names a global javascript function, loaded with the document or dialogform media that is invoked without parameters after closing the dialog. An example from ``note_list.html``::
 
    <div class="dialog-anchor" data-url="{% url 'note-iframe-admin' pk=note.pk %}"
                  title="Iframe Edit with admin widgets"
@@ -217,14 +224,12 @@ to have dialogs appear on top of any layers they may end up overlapping with.
 Demo App
 --------
 
-The demo app is included to provide at least one example for the possible combinations of dialogform dialog types without and within the admin.
+The demo app is included to provide at least one example for the possible combinations of dialogform types without- and within the admin.
 
 Models
 ^^^^^^
 
-The following simple models are used:
-
-::
+The following simple models are used::
 
     class Note(models.Model):
         content = models.CharField(max_length=200) 
@@ -247,7 +252,7 @@ The demo app ``Notes`` list view contains ``NoteChange`` and ``NoteChangeIframe`
 
 Both of these views have an optional ``admin`` boolean keyword argument indicating the form (``NoteForm`` or ``Note4AdminForm``) to be used by the dialog view.  This ``admin`` argument is set by the request url (``demo/urls.py``).
 
-These views also select the base template that ``dialogform/demo/note_form.html`` extends by setting the ``dialogform_template`` template context variable. This is pure convenience to minimize code duplication and view reuse within and without admin.
+These views also select the base template that ``dialogform/demo/note_form.html`` extends by setting the ``dialogform_template`` context variable. This is pure convenience to minimize code duplication and view reuse in the demo app.
 
 
 Admin-widgets Used in the Demo 

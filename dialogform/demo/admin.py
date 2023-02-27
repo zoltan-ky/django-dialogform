@@ -14,9 +14,9 @@ class NoteAdmin(admin.ModelAdmin):
     list_editable = ('published',)
     
     class Media:
-        js = ["dialogform/js/script.js"]
+        js = ["dialogform/js/dialogform.js"]
         css = {"all": [
-            "dialogform/css/style.css",
+            "dialogform/css/dialogform.css",
             "dialogform/demo/css/style.css"
         ]}
     fields = ('content', 'date', 'parents', 'published')
