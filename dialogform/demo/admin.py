@@ -35,7 +35,8 @@ class NoteAdmin(admin.ModelAdmin):
     add_form_template = "admin/change_form.html"
     change_form_template = "dialogform/demo/admin_note_change.html"
     
-    def change_view(self, request, object_id, form_url='', extra_context=None):
+    def change_view(self, request, object_id, form_url='', extra_context={}):
+        extra_context.update({'is_popup': True})
         response = super().change_view(request, object_id, form_url, extra_context)
         if request.method == 'POST' and response.status_code == 302:
             response = JsonResponse(
