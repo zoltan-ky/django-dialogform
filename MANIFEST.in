@@ -1,4 +1,3 @@
 include LICENSE
 include README.rst
-recursive include dialogform/static *
-recursive include dialogform/templates *
+exclude manage.py
