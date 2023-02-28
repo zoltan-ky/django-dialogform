@@ -3,7 +3,7 @@ django-dialogform
 
 Overview
 --------
-Django app to open forms within ``<dialog>`` element popups. These popups are auto-placed relative to their anchor and auto-sized to their content, placed within the referring page viewport area and have no menus or borders for resizing/moving.  This is meant for django forms that wouldn't have a large amount of data, but maybe only present a few fields to modify some attributes of a model, create new relations between models, or run queries, etc., with the referring page in the background waiting for the dialog form to be closed.
+Django app to load and open form views within ``<dialog>`` element popups. These popups are auto-placed relative to their anchor and auto-sized to their content, placed within the referring page viewport area and have no menus or borders for resizing/moving.  This is meant for django forms that wouldn't have a large amount of data, but maybe only present a few fields to modify some attributes of a model, create new relations between models, or run queries, etc., with the referring page in the background waiting for the dialog form to be closed.
 
 Three different dialog template options are included:
 

@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "django-dialogform"
+version = "0.0.1"
+description='Django app to load and open form views within dialog element popups'
+readme = "README.rst"
+requires-python = ">=3.8"
+keywords = ["dialog","form"]
+license = {text = "GNU General Public License v3 (GPLv3)"}
+classifiers = [
+  'Development Status :: 5 - Production/Stable',
+  'Environment :: Web Environment',
+  'Framework :: Django',
+  'Intended Audience :: Developers',
+  'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+  'Operating System :: OS Independent',
+  'Programming Language :: Python',
+  'Programming Language :: Python :: 3.8',
+  'Programming Language :: Python :: 3.9',
+  'Programming Language :: Python :: 3.10',
+  'Programming Language :: Javascript',
+  'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+]
+dependencies = [
+  "requests",
+  'importlib-metadata; python_version<"3.8"',
+  'django>=4.1.1',
+]
+dynamic = ["version"]
+
