@@ -12,7 +12,7 @@ from django import forms
 from django.forms.utils import RenderableFormMixin
 
 class DialogMixin(RenderableFormMixin, metaclass = forms.MediaDefiningClass):
-    method = "POST"
+    method = "post"
     render_as = "div"
     def as_render_as(self):
         if self.render_as.lower() not in ('div','table','p','ul'):

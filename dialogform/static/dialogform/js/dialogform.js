@@ -50,21 +50,19 @@ class BaseDialog {
     console_log(s) {
         if (this.log) console.log(s);
     }
-    
-    get_container() {
-        const dialog_container = document.createElement('div');
-        document.body.insertAdjacentElement('beforeend', dialog_container);
-        return dialog_container;
-    }
 
-    clear_container(container) {
-        for (let child of container.querySelectorAll('*')) child.remove();
+    get_container() {
+        const container = document.createElement('div');
+        document.body.insertAdjacentElement('beforeend', container);
+        return container;
     }
     
-    remove_container(container, dialog) {
+    clear_dialog(dialog) {
+        const container = dialog.parentElement;
+        for (let child of container.querySelectorAll('*')) child.remove();
         container.remove();
     }
-
+    
     check_dialog(dialog) {
         //  Basic dialogform verification. Sets this.form if successful
         if (dialog.tagName !== this.dialogTagName) {
@@ -78,7 +76,7 @@ class BaseDialog {
 
     load_form_media(dialog) {}
     
-    hook_listener_fn() {
+    hook_add_listener_fn() {
         const listeners = this.listeners;
         const newAddEventListener = function (event, fn, ...args) {
             this.originalAddEventListener(event, fn, ...args);
@@ -91,7 +89,7 @@ class BaseDialog {
         }
     }
 
-    unhook_listener_fn() {
+    unhook_add_listener_fn() {
         if ('originalAddEventListener' in EventTarget.prototype &&
             EventTarget.prototype.addEventListener !== EventTarget.prototype.originalAddEventListener) {
             EventTarget.prototype.addEventListener = EventTarget.prototype.originalAddEventListener;
@@ -182,14 +180,13 @@ class BaseDialog {
     async process() {
         const anchor = this.anchor;
         const url = anchor.dataset.url;
-        const dialog_container = this.get_container();
         var dialog = null;
         this.response = null;
         
         for (let done = false; !done ;) {
 
-            this.hook_listener_fn();
-            dialog = await this.create_dialog(dialog_container);
+            this.hook_add_listener_fn();
+            dialog = await this.create_dialog();
             this.check_dialog(dialog);
             this.load_form_media(dialog);
             this.setup_resize_dialog(dialog);
@@ -201,34 +198,35 @@ class BaseDialog {
             });
             this.form_method = this.form.getAttribute("method");
             this.form.setAttribute("method","dialog");
+            
             let formClose = await new Promise((finished) => {
                 const buttons = this.form.querySelectorAll(this.dialogButtonsSelector);
                 for (const button of buttons) {
                     button.addEventListener('click', event => {
-                        event.preventDefault();
                         finished({ value: event.target['value'],
                                    target: event.target })
                     },{ once: true });
                 }
                 // Clicking any links must open in a new context, leave this one alone
                 const anchor_container = (typeof this.iframe == "undefined") ?
-                       dialog_container : this.iframe.contentDocument;
+                       dialog : this.iframe.contentDocument;
                 const anchors = anchor_container.querySelectorAll('a');
                 for (const anchor of anchors) {
                     anchor.target = '_blank';
                 }
                 // This works for dialog.show() (non-modal)
                 this.form.addEventListener('keydown', (event) => {
-                    if (event.code == "Escape")
+                    if (event.code == "Escape") {
                         finished({ value: 'cancel', target: event.target });
-                }, { 'capture': true });
+                    }
+                }, { 'capture': true }, true);
                 // Any submit confirms
                 this.form.addEventListener('submit', event => {
                     finished({ value: 'confirm', target: event.target});
                 });
             });
             dialog.close();
-            this.unhook_listener_fn();
+            this.unhook_add_listener_fn();
             this.remove_listeners();
             
             // Restore form method
@@ -253,13 +251,15 @@ class BaseDialog {
                 } else {
                     // form method GET: request form action path with form_data query
                     let formAction = new URL(this.form.action);
-                    let search = new URLSearchParams(form_data);
-                    window.location.assign(formAction.pathname + '?' + search.toString());
+                    new URLSearchParams(form_data).forEach((value,key) => {
+                        formAction.searchParams.set(key, value)
+                    });
+                    console.log(`Location assigned: ${formAction}`);
+                    window.location.assign(formAction);
                 }
             }
-            this.clear_container(dialog_container);
+            this.clear_dialog(dialog);
         }
-        this.remove_container(dialog_container, dialog);
         if ('cleanup' in anchor.dataset && anchor.dataset.cleanup in globalThis) {
             globalThis[anchor.dataset.cleanup]();
         }
@@ -324,14 +324,16 @@ class IFrameDialog extends BaseDialog {
         this.topElement = iframe;
     }
     
-    async create_dialog(dialog_container) {
+    async create_dialog() {
         const dialog = document.createElement('dialog');
         dialog.classList = 'dialogform-iframe';
         const iframe = document.createElement('iframe');
         this.iframe = iframe;   // save (e.g for drag ops)
         dialog.appendChild(iframe);
         dialog.style.opacity = 0;
-        dialog_container.appendChild(dialog);
+        
+        let container = this.get_container();
+        container.appendChild(dialog);
 
         // Load...
         var result = await new Promise((loaded) => {
@@ -350,13 +352,13 @@ class IFrameDialog extends BaseDialog {
 
 class LocalDialog extends BaseDialog {
 
-    clear_container(container) {}
-    
-    remove_container(container, dialog) {
+    clear_dialog(dialog) {
+        let container = dialog.parentElement;
         this.originalParent.appendChild(dialog);
-        super.remove_container(container);
+        container.remove();
+        delete this.originalParent;
     }
-
+    
     check_dialog(dialog) {
         super.check_dialog(dialog);
         if (this.form.method.toLowerCase() != "get") {
@@ -364,14 +366,15 @@ class LocalDialog extends BaseDialog {
         }
     }
     
-    async create_dialog(dialog_container) {
+    async create_dialog() {
         let dialog = document.querySelector(this.anchor.dataset.url);
         if (!dialog) {
             throw new Error(`django dialogform LocalDialog can't find url: ${this.anchor.dataset.url}`);
         }
         this.originalParent = dialog.parentElement;
+        let container = this.get_container();
         dialog.style.opacity = 0;
-        dialog_container.appendChild(dialog);
+        container.appendChild(dialog);
         return dialog;
     }
 }
@@ -386,15 +389,16 @@ class DialogDialog extends BaseDialog {
         return (src.indexOf(':') < 0) ? src : new URL(src).pathname;
     }
     
-    async create_dialog(dialog_container) {
+    async create_dialog() {
         // If there's no previous response (rejected form), get it at the
         // dialogform url
         let response = this.response ? this.response :
-              await this.fetchall(this.anchor.dataset.url, { method: 'GET' });
+            await this.fetchall(this.anchor.dataset.url, { method: 'GET' });
 
         // Create DOM dialog
-        dialog_container.insertAdjacentHTML('afterbegin', response.data);
-        let dialog = dialog_container.children[0];
+        let container = this.get_container();
+        container.insertAdjacentHTML('afterbegin', response.data);
+        let dialog = container.children[0];
         dialog.style.opacity = 0;
         return dialog;
     }

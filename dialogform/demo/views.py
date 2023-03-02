@@ -23,7 +23,6 @@ class Notes(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        print(f'request.GET: {self.request.GET}\n')
         queryform = \
             queryform = SearchForm(self.request.GET) if 'search' in self.request.GET \
                 else SearchForm({'search':''})

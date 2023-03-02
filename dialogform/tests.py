@@ -9,4 +9,4 @@
 
 from django.test import TestCase
 
-# Create your tests here.
+# See demo/tests.py. If installed, run by ./manage.py test

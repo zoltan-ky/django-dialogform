@@ -8,8 +8,9 @@ Parameters: form, dlgfrm_tags, dialogform_cssclass
 dialogform_cssclass may be optionally set by views using DialogFormMixin
 
 {% endcomment %}
-<form method="{{ form.method|default:"dialog" }}" class="dialogform {{ dialogform_cssclass }}">
-  {% if form.method|lower != "get" %}{% csrf_token %}{% endif %}
+
+<form method="{{ form.method|default:"post" }}" class="dialogform {{ dialogform_cssclass }}">
+  {% if form.method|lower == "post" %}{% csrf_token %}{% endif %}
   {% if form.render_as == "table" %}<table>{% endif %}
   {{ form.as_render_as }}
   {% if form.render_as == "table" %}</table>{% endif %}
@@ -17,6 +18,6 @@ dialogform_cssclass may be optionally set by views using DialogFormMixin
     {% if form %}
       <button class="dialogform" value="cancel">Cancel</button></td>
     {% endif %}
-    <button classq="dialogform" value="confirm">OK</button>
+    <button class="dialogform" value="confirm">OK</button>
   </div>
 </form>

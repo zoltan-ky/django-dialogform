@@ -22,6 +22,9 @@
         font-size: smaller;
         color: #BA0;
     }
+    a {
+        color: #A0A;
+    }
 }
 @media (prefers-color-scheme: dark) {
     :root {
@@ -32,6 +35,9 @@
     sup {
         font-size: smaller;
         color: #CC0;
+    }
+    a {
+        color: #F8F;
     }
 }
 html {
@@ -55,7 +61,7 @@ td {
 }
 
 label {
-    float: left;
+    padding: 1px;
 }
 legend {
     padding: 4px;
