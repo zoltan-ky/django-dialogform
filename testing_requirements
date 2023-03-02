@@ -1,0 +1,3 @@
+# pip requirements to run automated tests in dialogform/demo/tests.py
+selenium >= 4.8.2
+webdriver-manager >= 3.8.5
