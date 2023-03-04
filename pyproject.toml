@@ -23,7 +23,7 @@ classifiers = [
   'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
   'Operating System :: OS Independent',
   'Programming Language :: Python',
-  'Programming Language :: Javascript',
+  'Programming Language :: JavaScript',
   'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
 ]
 dependencies = [
