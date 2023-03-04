@@ -28,7 +28,7 @@ A simple demo app with all these variations is included in the dialogform/demo s
 Known Limitations
 -----------------
 
-Dialogforms are auto-positioning and -sizing within the viewport. Dialogform media assets are restricted to sameorigin. Tested only with more complex Admin widgets (AdminSplitDateTime, RelatedObjectsWrapper, Autoselect...) and some similar third-party apps like django-addanother, django-autocomplete-light.
+Dialogforms are auto-positioning and -sizing within the viewport. Dialogform media assets are restricted to sameorigin. Tested only as far as a few more complex Admin widgets (AdminSplitDateTime, RelatedObjectsWrapper, Autoselect...) and some similar third-party apps like django-addanother, django-autocomplete-light.
 
 
 Demo Installation
@@ -104,7 +104,7 @@ Forms
    
     from dialogform.forms import DialogMixin
     ...
-    class SomeForm(DialogMixin,...)
+    class SomeDialogForm(DialogMixin,...)
 
 ``DialogMixin`` adds a ``method`` attribute to ``Form`` (default: "POST") that allows specifying "GET" for query forms that is used for form submission.  During the dialog phase, the form method is always set to ``DIALOG``.
 
@@ -138,7 +138,7 @@ The template (e.g ``sometemplate.html``) should extend one of the following temp
 +----------------+-----------------+--------------------+                             
 |View/dialog-type|   App Views     |    Admin Views     |
 +================+=================+====================+
-|dialog          |           dialog.html                |
+|dialog, local   |:           dialog.html               |
 +----------------+-----------------+--------------------+
 |iframe          |  page.html      | std admin templates|
 +----------------+-----------------+--------------------+
@@ -274,7 +274,7 @@ The following simple models are used::
 Views, Forms, Templates
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-The demo app has two Note list views, one without admin and the other within admin.
+The demo app has two Note list views, one without admin (default url path ``"/"``) and the other within admin (``"/admin/demo/note/"``).
 
 The demo app ``Notes`` list view contains ``NoteChange`` and ``NoteChangeIframe`` views invoked by ``dialog``- and ``iframe``-type dialogs respectively.  It also includes a ``local`` dialog for a Note search query.
 
