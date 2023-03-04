@@ -19,9 +19,11 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.firefox import GeckoDriverManager
 
 def setUpDatabase(obj):
     # This is set up before each of the tests below
@@ -44,7 +46,7 @@ def setUpDatabase(obj):
     tag2.notes.set([note2])
 
         
-class BasicTests(TestCase):
+class Basic(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -72,18 +74,7 @@ class BasicTests(TestCase):
         self.assertEqual(response.context['note_list'].count(), 3)
 
 
-class ChromeTests(StaticLiveServerTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
-        cls.driver.implicitly_wait(10)
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.driver.quit()     # Leave during test development
-        super().tearDownClass()
-
+class LiveServerTests:
     def setUp(self):
         setUpDatabase(self)
     
@@ -166,3 +157,28 @@ class ChromeTests(StaticLiveServerTestCase):
             By.CSS_SELECTOR, '.dialog-anchor[data-url="/note/1/change-admin/"]').click()
         self.driver.find_element(
             By.CSS_SELECTOR,'form[method="dialog"] button[value="confirm"]').click()
+
+
+class Chrome(LiveServerTests, StaticLiveServerTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
+        cls.driver.implicitly_wait(10)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.driver.quit()     # Leave during test development
+        super().tearDownClass()
+
+class Firefox(LiveServerTests, StaticLiveServerTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()))
+        cls.driver.implicitly_wait(10)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.driver.quit()     # Leave during test development
+        super().tearDownClass()

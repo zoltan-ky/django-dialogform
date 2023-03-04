@@ -31,16 +31,16 @@ Known Limitations
 Dialogforms are auto-positioning and -sizing within the viewport. Dialogform media assets are restricted to sameorigin. Tested only with more complex Admin widgets (AdminSplitDateTime, RelatedObjectsWrapper, Autoselect...) and some similar third-party apps like django-addanother, django-autocomplete-light.
 
 
-Installation and Demo
----------------------
+Demo Installation
+-----------------
 
-In an empty directory do:
+In an empty directory do (don't miss the "." at the end):
 
 ::
 
     git clone https://github.com/zoltan-ky/django-dialogform.git .
 
-If you wish to run the demo, after installing the above, check for ``manage.py`` and in the same directory set up a python3 environment e.g (using bash):
+Check for ``manage.py``, ``dialogform``, ``README.rst`` to confirm. Set up a python3 environment (here e.g using bash):
 
 ::
    
@@ -58,11 +58,39 @@ that starts up a localhost debug server. Now browse to ``localhost:8000``.
 
 Clicking on the various links within the list of notes will open tag assignment and note editing dialogs. The third and fourth columns that demo the use of Admin widgets outside of the admin require prior login to admin. At the bottom there is a link to log in with ``admin``, ``admin``.
 
-There is a 'search' dialog above the list of notes that demonstrates local dialogs.
+There is a 'search' dialog above the list of notes that demonstrates local dialogs.  For implementation details refer to the `Demo App`_ section below.
+
+Running the automated selenium tests
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To run basic tests, without installing ``testing_requirements``::
+
+   ./manage.py test dialogform.demo.tests.Basic
 
 
-Using Dialogform
-----------------
+If you have Chrome or Firefox installed on your system then you can try to run the automated dialogform test within either of those browsers by::
+
+  pip install -r testing_requirements
+
+then::
+
+   ./manage.py test dialogform.demo.tests.<Browser>
+
+either ``Chrome`` or ``Firefox`` will run through all the demo dialogs. The first time it webdriver_manager will install the browser drivers into its cache, the tests may fail if the browser takes too long to start up - in this case repeat the test command above.
+
+::
+
+   ./manage.py test
+
+will try to run all the tests - Basic, Chrome and Firefox.
+
+
+Using Dialogform within a Django project
+----------------------------------------
+
+With a project .venv already set up::
+
+  pip install django-dialogform
 
 Add ``'dialogform',`` to ``INSTALLED_APPS`` in your project's ``settings.py``.
 
