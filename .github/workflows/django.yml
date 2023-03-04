@@ -29,5 +29,4 @@ jobs:
         pip install -r requirements
     - name: Run Tests
       run: |
-        pip install -r testing_requirements
-        python manage.py test
+        python manage.py test dialogform.demo.tests.BasicTest

@@ -7,7 +7,7 @@
 # to redistribute it under conditions of the GPLv3 LICENSE included in this package
 # To use it, refer to the included README.rst
 
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.utils import timezone
 from django.db.models import QuerySet
@@ -23,39 +23,36 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from webdriver_manager.chrome import ChromeDriverManager
 
-class Tests(StaticLiveServerTestCase):
+def setUpDatabase(obj):
+    # This is set up before each of the tests below
+    note1 = Note.objects.create(pk=1, content="First Note", date = timezone.now(),
+                                published=False)
+    note1.parents.set([])
+        
+    note2 = Note.objects.create(pk=2, content="Second Note", date = timezone.now(),
+                                published=False)
+    note2.parents.set([note1])
+    
+    note3 = Note.objects.create(pk=3, content="Third Note", date = timezone.now(),
+                                published=False)
+    note3.parents.set([note1,note2])
+    
+    tag1 = Tag.objects.create(pk=1, name="one")
+    tag1.notes.set([note1, note2])
+    
+    tag2 = Tag.objects.create(pk=2, name="two")
+    tag2.notes.set([note2])
 
+        
+class BasicTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
-        cls.driver.implicitly_wait(10)
-
+        cls.driver = Client()
+        
     @classmethod
-    def tearDownClass(cls):
-        cls.driver.quit()     # Leave during test development
-        super().tearDownClass()
-       
-    def setUp(self):
-        # This is set up before each of the tests below
-        note1 = Note.objects.create(pk=1, content="First Note", date = timezone.now(),
-                                    published=False)
-        note1.parents.set([])
-        
-        note2 = Note.objects.create(pk=2, content="Second Note", date = timezone.now(),
-                                    published=False)
-        note2.parents.set([note1])
-
-        note3 = Note.objects.create(pk=3, content="Third Note", date = timezone.now(),
-                                    published=False)
-        note3.parents.set([note1,note2])
-        
-        tag1 = Tag.objects.create(pk=1, name="one")
-        tag1.notes.set([note1, note2])
-        
-        tag2 = Tag.objects.create(pk=2, name="two")
-        tag2.notes.set([note2])
-
+    def setUpTestData(cls):
+        setUpDatabase(cls)
         
     def test_note_and_tags_load(self):
         """Test notes and tags load correctly"""
@@ -70,6 +67,26 @@ class Tests(StaticLiveServerTestCase):
         self.assertEqual(set(note1.tags.all()), set([tag1]))
         self.assertEqual(set(note2.tags.all()), set([tag1,tag2]))
 
+    def test_note_list(self):
+        response = self.driver.get('/')
+        self.assertEqual(response.context['note_list'].count(), 3)
+
+
+class ChromeTests(StaticLiveServerTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
+        cls.driver.implicitly_wait(10)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.driver.quit()     # Leave during test development
+        super().tearDownClass()
+
+    def setUp(self):
+        setUpDatabase(self)
+    
     def test_note_list(self):
         """Test note list loads"""
         self.driver.get(f'{self.live_server_url}/')
@@ -124,10 +141,12 @@ class Tests(StaticLiveServerTestCase):
     def admin_login(self):
         User.objects.create_superuser(username="admin", email=None, password="admin")
         self.driver.get(f'{self.live_server_url}/admin/demo/note/')
-        self.driver.find_element(By.NAME, "username").send_keys('admin')
-        self.driver.find_element(By.NAME, "password").send_keys('admin')
-        self.driver.find_element(
-            By.CSS_SELECTOR, 'input[type="submit"]').click()
+        username = self.driver.find_element(By.NAME, "username")
+        if username:
+            username.send_keys('admin')
+            self.driver.find_element(By.NAME, "password").send_keys('admin')
+            self.driver.find_element(
+                By.CSS_SELECTOR, 'input[type="submit"]').click()
         self.driver.find_element(By.CSS_SELECTOR, 'th[class="column-noteandtags"]')
         
     def test_note_admin_change_form(self):
@@ -142,6 +161,7 @@ class Tests(StaticLiveServerTestCase):
 
     def test_note_admin_non_view(self):
         ''' Test non-admin view dialog within admin'''
+        self.admin_login()
         self.driver.find_element(
             By.CSS_SELECTOR, '.dialog-anchor[data-url="/note/1/change-admin/"]').click()
         self.driver.find_element(
