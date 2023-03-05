@@ -138,7 +138,7 @@ The template (e.g ``sometemplate.html``) should extend one of the following temp
 +----------------+-----------------+--------------------+                             
 |View/dialog-type|   App Views     |    Admin Views     |
 +================+=================+====================+
-|dialog, local   |:           dialog.html               |
+|dialog, local   | . . . . .   dialog.html              |
 +----------------+-----------------+--------------------+
 |iframe          |  page.html      | std admin templates|
 +----------------+-----------------+--------------------+
