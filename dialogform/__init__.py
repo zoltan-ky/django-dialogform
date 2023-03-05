@@ -7,4 +7,4 @@
 # to redistribute it under conditions of the GPLv3 LICENSE included in this package
 # To use it, refer to the included README.rst
 
-VERSION="1.0b1"
+VERSION="1.0b2"
