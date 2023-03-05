@@ -26,7 +26,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 
 def setUpDatabase(obj):
-    # This is set up before each of the tests below
+    # test database setup:
     note1 = Note.objects.create(pk=1, content="First Note", date = timezone.now(),
                                 published=False)
     note1.parents.set([])
@@ -45,7 +45,9 @@ def setUpDatabase(obj):
     tag2 = Tag.objects.create(pk=2, name="two")
     tag2.notes.set([note2])
 
-        
+    dummy1 = Note.objects.count()
+    dummy2 = Tag.objects.count()
+
 class Basic(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -54,6 +56,7 @@ class Basic(TestCase):
         
     @classmethod
     def setUpTestData(cls):
+        super().setUpTestData()
         setUpDatabase(cls)
         
     def test_note_and_tags_load(self):
@@ -77,7 +80,7 @@ class Basic(TestCase):
 class LiveServerTests:
     def setUp(self):
         setUpDatabase(self)
-    
+        
     def test_note_list(self):
         """Test note list loads"""
         self.driver.get(f'{self.live_server_url}/')
@@ -126,8 +129,29 @@ class LiveServerTests:
         self.driver.find_element(
             By.CSS_SELECTOR, '.dialog-anchor[data-url="#local_note_dialog"]').click()
         self.driver.find_element(
+            By.CSS_SELECTOR, 'form[method="dialog"] input#id_search').send_keys("First")
+        self.driver.find_element(
             By.CSS_SELECTOR, 'form[method="dialog"] button[value="confirm"]').click()
+        notes = self.driver.find_elements(
+            By.CSS_SELECTOR, 'div.noteandtags > div.dialog-anchor')
+        self.assertEqual(len(notes), 1)
 
+    def test_note_search_cancel(self):
+        '''Local "search" dialog '''
+        self.driver.get(f'{self.live_server_url}/')
+        self.driver.find_element(
+            By.CSS_SELECTOR, '.dialog-anchor[data-url="#local_note_dialog"]').click()
+        self.driver.find_element(
+            By.CSS_SELECTOR, 'form[method="dialog"] input#id_search').click()
+        self.driver.find_element(
+            By.CSS_SELECTOR, 'form[method="dialog"] button[value="cancel"]').click()
+        notes = self.driver.find_elements(
+            By.CSS_SELECTOR, 'div.noteandtags > div.dialog-anchor')
+        self.assertEqual(len(notes), 3)
+        WebDriverWait(self.driver, timeout=5).until(
+            expected_conditions.none_of(
+                expected_conditions.url_matches(r'http.*/?.*=')),
+            f"Url:{self.driver.current_url} - query should be empty after search query cancel!")
 
     def admin_login(self):
         User.objects.create_superuser(username="admin", email=None, password="admin")
@@ -170,6 +194,7 @@ class Chrome(LiveServerTests, StaticLiveServerTestCase):
     def tearDownClass(cls):
         cls.driver.quit()     # Leave during test development
         super().tearDownClass()
+
 
 class Firefox(LiveServerTests, StaticLiveServerTestCase):
     @classmethod

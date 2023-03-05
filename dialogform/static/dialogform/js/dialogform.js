@@ -57,7 +57,7 @@ class BaseDialog {
         return container;
     }
     
-    clear_dialog(dialog) {
+    destroy_dialog(dialog) {
         const container = dialog.parentElement;
         for (let child of container.querySelectorAll('*')) child.remove();
         container.remove();
@@ -217,11 +217,13 @@ class BaseDialog {
                 // This works for dialog.show() (non-modal)
                 this.form.addEventListener('keydown', (event) => {
                     if (event.code == "Escape") {
+                        event.preventDefault();
                         finished({ value: 'cancel', target: event.target });
                     }
                 }, { 'capture': true }, true);
                 // Any submit confirms
                 this.form.addEventListener('submit', event => {
+                    event.preventDefault();
                     finished({ value: 'confirm', target: event.target});
                 });
             });
@@ -229,21 +231,18 @@ class BaseDialog {
             this.unhook_add_listener_fn();
             this.remove_listeners();
             
-            // Restore form method
-            this.form.setAttribute("method", this.form_method);
-            
             done = true;        // most likely
             if (formClose.value == 'confirm') {
                 const form_data = new FormData(this.form);
                 if (this.form_method.toUpperCase() != "GET") {
-                    const response = await this.fetchall(url, { method: 'POST', body: form_data }); // presume POST.
+                    const response = await this.fetchall(url, { method: 'POST', body: form_data });
                     if (response.ok) {
                         if (response.data.status == 302) {
                             window.location.assign(response.data.url); // json response.data
                         } else {
-                            // Form submission returned as text/html with new form
+                            // Invalid form submission returned as text/html
+                            this.response = response; // create_dialog with returned form + errors
                             done = false; // fumbled, redo...
-                            this.response = response; // to create_dialog with returned form + errors
                         }
                     } else {
                         console.error(`Dialogform POST failed with status ${response.status}\n`);
@@ -258,7 +257,7 @@ class BaseDialog {
                     window.location.assign(formAction);
                 }
             }
-            this.clear_dialog(dialog);
+            this.destroy_dialog(dialog);
         }
         if ('cleanup' in anchor.dataset && anchor.dataset.cleanup in globalThis) {
             globalThis[anchor.dataset.cleanup]();
@@ -352,7 +351,8 @@ class IFrameDialog extends BaseDialog {
 
 class LocalDialog extends BaseDialog {
 
-    clear_dialog(dialog) {
+    destroy_dialog(dialog) {
+        this.form.setAttribute("method", this.form_method); // Restore form method
         let container = dialog.parentElement;
         this.originalParent.appendChild(dialog);
         container.remove();
@@ -364,6 +364,7 @@ class LocalDialog extends BaseDialog {
         if (this.form.method.toLowerCase() != "get") {
             throw new Error(`django dialogform LocalDialog method must be "get", others not supported`);
         }
+        // Save original method so it could be restored by destroy_dialog
     }
     
     async create_dialog() {

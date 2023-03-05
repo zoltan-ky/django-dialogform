@@ -16,8 +16,8 @@ dialogform_cssclass may be optionally set by views using DialogFormMixin
   {% if form.render_as == "table" %}</table>{% endif %}
   <div class="dialogform-buttons">
     {% if form %}
-      <button class="dialogform" value="cancel">Cancel</button></td>
+      <button class="dialogform" type="button" value="cancel">Cancel</button></td>
     {% endif %}
-    <button class="dialogform" value="confirm">OK</button>
+    <button class="dialogform" type="submit" value="confirm">OK</button>
   </div>
 </form>
