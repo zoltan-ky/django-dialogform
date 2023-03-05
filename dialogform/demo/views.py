@@ -42,8 +42,10 @@ class NoteChange(DialogFormMixin, UpdateView):
         return NoteForm if 'admin' not in self.kwargs else Note4AdminForm
 
     def get_success_url(self):
-        return reverse("notes") if 'admin' not in self.kwargs \
-            else reverse("admin:demo_note_changelist")
+        if 'admin' in self.kwargs and self.kwargs['admin']:
+            return reverse("admin:demo_note_changelist")
+        else:
+            return reverse("notes")
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

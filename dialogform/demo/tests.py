@@ -81,12 +81,15 @@ class LiveServerTests:
     def setUp(self):
         setUpDatabase(self)
         
+    def check_note_list_view(self):
+        anchors = self.driver.find_elements(By.CSS_SELECTOR, '.dialog-anchor')
+        self.assertEqual(len(anchors), 4*3+3+1) # Notes, Tags, Search
+   
     def test_note_list(self):
         """Test note list loads"""
         self.driver.get(f'{self.live_server_url}/')
-        anchors = self.driver.find_elements(By.CSS_SELECTOR, '.dialog-anchor')
-        self.assertEqual(len(anchors), 4*3+3+1) # Notes, Tags, Search
-
+        self.check_note_list_view()
+        
     def test_note_anchor(self):
         '''dialog with django.forms.widgets'''
         self.driver.get(f'{self.live_server_url}/')
@@ -94,6 +97,7 @@ class LiveServerTests:
             By.CSS_SELECTOR, '.dialog-anchor[data-url="/note/1/change/"]').click()
         self.driver.find_element(
             By.CSS_SELECTOR, 'form[method="dialog"] button[value="confirm"]').click()
+        self.check_note_list_view()
 
     def test_note_anchor_iframe(self):
         '''dialog/iframe with django.forms.widgets'''
@@ -104,6 +108,7 @@ class LiveServerTests:
         self.driver.switch_to.frame(iframe)
         self.driver.find_element(
             By.CSS_SELECTOR, 'form[method="dialog"] button[value="confirm"]').click()
+        self.check_note_list_view()
 
     def test_note_anchor_admin(self):
         '''dialog with admin widgets'''
@@ -112,6 +117,7 @@ class LiveServerTests:
             By.CSS_SELECTOR, '.dialog-anchor[data-url="/note/1/change-admin/"]').click()
         self.driver.find_element(
             By.CSS_SELECTOR, 'form[method="dialog"] button[value="confirm"]').click()
+        self.check_note_list_view()
 
     def test_note_anchor_iframe_admin(self):
         '''dialog/iframe with Admin widgets'''
@@ -122,6 +128,7 @@ class LiveServerTests:
         self.driver.switch_to.frame(iframe)
         self.driver.find_element(
             By.CSS_SELECTOR, 'form[method="dialog"] button[value="confirm"]').click()
+        self.check_note_list_view()
 
     def test_note_search_anchor(self):
         '''Local "search" dialog '''
@@ -152,6 +159,7 @@ class LiveServerTests:
             expected_conditions.none_of(
                 expected_conditions.url_matches(r'http.*/?.*=')),
             f"Url:{self.driver.current_url} - query should be empty after search query cancel!")
+        self.check_note_list_view()
 
     def admin_login(self):
         User.objects.create_superuser(username="admin", email=None, password="admin")
@@ -178,7 +186,7 @@ class LiveServerTests:
         ''' Test non-admin view dialog within admin'''
         self.admin_login()
         self.driver.find_element(
-            By.CSS_SELECTOR, '.dialog-anchor[data-url="/note/1/change-admin/"]').click()
+            By.CSS_SELECTOR, '.dialog-anchor[data-url="/note/1/admin-change/"]').click()
         self.driver.find_element(
             By.CSS_SELECTOR,'form[method="dialog"] button[value="confirm"]').click()
 

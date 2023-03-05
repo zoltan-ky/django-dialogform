@@ -44,7 +44,7 @@ Includes media required to instantiate dialog 'anchors' and basic demo app styli
         <tr>
           <td>{% spaceless %}
             <div class="noteandtags">
-              <div class="dialog-anchor" data-url="{% url 'note-edit' pk=note.pk %}" title="Edit with dialog">
+              <div class="dialog-anchor" data-url="{% url 'note-change' pk=note.pk %}" title="Edit with dialog">
                 <span>{{ note.content }}</span></div>
               <sup>
                 <div class="dialog-anchor" data-url="{% url 'note-selecttags' pk=note.pk %}">
@@ -65,7 +65,7 @@ Includes media required to instantiate dialog 'anchors' and basic demo app styli
               <span>{{ note.content }}</span></div>
           </td>
           <td>
-            <div class="dialog-anchor" data-url="{% url 'note-edit-admin' pk=note.pk %}"
+            <div class="dialog-anchor" data-url="{% url 'note-change-admin' pk=note.pk %}"
                  title="Dialog Edit with admin widgets"
                  data-cleanup="admin_cleanup">
               <span>{{ note.content }}</span></div>
