@@ -108,6 +108,7 @@ class LiveServerTests:
         self.driver.switch_to.frame(iframe)
         self.driver.find_element(
             By.CSS_SELECTOR, 'form[method="dialog"] button[value="confirm"]').click()
+        self.driver.switch_to.default_content();
         self.check_note_list_view()
 
     def test_note_anchor_admin(self):
@@ -128,6 +129,7 @@ class LiveServerTests:
         self.driver.switch_to.frame(iframe)
         self.driver.find_element(
             By.CSS_SELECTOR, 'form[method="dialog"] button[value="confirm"]').click()
+        self.driver.switch_to.default_content();
         self.check_note_list_view()
 
     def test_note_search_anchor(self):
