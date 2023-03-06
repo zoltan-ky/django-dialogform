@@ -47,7 +47,7 @@ class NoteAdmin(admin.ModelAdmin):
     # Provides a dialog/form popup
     @admin.display(description='Note (dialog)')
     def dialogedit(self, note):
-        url = reverse_lazy("note-edit-admin", args=(note.pk,))
+        url = reverse_lazy("admin-note-change", args=(note.pk,))
         return format_html(
             '<div class="dialog-anchor"' +
             '  data-type="dialog"' + # also default if omitted
@@ -63,7 +63,7 @@ class NoteAdmin(admin.ModelAdmin):
         tags_html = f'<span>{tags_html}</span>' if tags \
             else '<img class="hide" src="/static/dialogform/demo/img/icon-tag.svg">'
         url1 = reverse_lazy("admin:demo_note_change", args=(note.pk,))
-        url2 = reverse_lazy("note-selecttags-admin",  args=(note.pk,))
+        url2 = reverse_lazy("admin-note-selecttags",  args=(note.pk,))
         return format_html(
             '<div class="dialog-anchor noteandtags"' +
             '  data-type="iframe"' +
