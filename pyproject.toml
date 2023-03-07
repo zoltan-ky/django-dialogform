@@ -8,7 +8,9 @@ readme = {file = ["README.rst"]}
 
 [project]
 name = "django-dialogform"
+version="1.0-rc.3"
 description='Django app to load and open form views within dialog element popups'
+readme = "README.rst"
 authors = [
   {name = "Zoltan Kemenczy", email = "gugliposta@gmail.com"},
 ]
