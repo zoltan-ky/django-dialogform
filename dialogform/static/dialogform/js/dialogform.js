@@ -280,7 +280,6 @@ class BaseDialog {
 class IFrameDialog extends BaseDialog {
 
     dialogTagName = "DIV";
-    
     maxHeight = 0;
     maxWidth = 0;
     topElement = null;
@@ -312,12 +311,14 @@ class IFrameDialog extends BaseDialog {
     });
 
     check_dialog(dialog) {
-        let iframe = dialog.querySelector('iframe');
-        const div = iframe.contentDocument.querySelector('div.dialogform-dialog'); // dialogform/page.html
-        if (!div) {
-            this.error('dialog/iframe missing div.dialogform-dialog - template not extended from dialogform/page.html?', dialog);
-        }
+        const div = this.iframe.contentDocument.querySelector('div.dialogform-dialog'); // dialogform/page.html
         super.check_dialog(div);
+    }
+
+    destroy_dialog(dialog) {
+        let iframe = dialog.querySelector('iframe');
+        if (iframe) iframe.remove();
+        super.destroy_dialog(dialog);
     }
     
     setup_resize_form() {
@@ -340,15 +341,14 @@ class IFrameDialog extends BaseDialog {
         const iframe = document.createElement('iframe');
         this.iframe = iframe;   // save (e.g for drag ops)
         dialog.appendChild(iframe);
-        dialog.style.opacity = 0;
-        
         let container = this.get_container();
+        dialog.style.opacity = 0;
         container.appendChild(dialog);
 
         // Load...
         var result = await new Promise((loaded) => {
-            // Chrome (as of20230208) does not produce load events on iframe.contentWindow
-            iframe.addEventListener('load', (event) => {loaded(true);});
+            // Chrome (as of20230208) does not produce load events on iframe.contentWindow/Document
+            iframe.addEventListener('load', event => loaded(true));
             if (this.response) {
                 // we have a previous response (e.g. a rejected form)
                 iframe.srcdoc = this.response.data;
@@ -356,6 +356,9 @@ class IFrameDialog extends BaseDialog {
                 iframe.src = this.anchor.dataset.url; 	// get a new dialogform
             }
         });
+        console.log(`iframe.contentDocument.readyState: ${iframe.contentDocument.readyState}`);
+        // One second delay - to avoid selenium tests race condition - seems to work
+        // result = await new Promise((done) => setTimeout(() => done(true), 1000));
         return dialog;
     }
 }

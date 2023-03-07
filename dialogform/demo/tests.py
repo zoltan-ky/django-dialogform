@@ -83,6 +83,23 @@ class LiveServerTests:
     def setUp(self):
         setUpDatabase(self)
 
+    def admin_login(self):
+        User.objects.create_superuser(username="admin", email=None, password="admin")
+        self.driver.get(f'{self.live_server_url}/admin/demo/note/')
+        username = self.driver.find_element(By.NAME, "username")
+        if username:
+            username.send_keys('admin')
+            self.driver.find_element(By.NAME, "password").send_keys('admin')
+            self.driver.find_element(
+                By.CSS_SELECTOR, 'input[type="submit"]').click()
+        self.driver.find_element(By.CSS_SELECTOR, 'th[class="column-noteandtags"]')
+        self.check_note_list_view(n_anchors=9) # admin note list page has 2*3(note) + 3(tag) anchors
+        
+    def check_note_list_view(self, n_anchors = 16):
+        # Default note_list page anchors = 4*3(tag)+3(tag)+1(search)
+        anchors = self.driver.find_elements(By.CSS_SELECTOR, '.dialog-anchor')
+        self.assertEqual(len(anchors), n_anchors) 
+   
     def open_dialog(self, selector):
         self.driver.find_element(By.CSS_SELECTOR, selector).click()
         self.dialog_container = self.driver.find_element(By.CSS_SELECTOR, 'div > dialog')
@@ -99,11 +116,6 @@ class LiveServerTests:
 
     # Tests:
     # ------
-    def check_note_list_view(self, n_anchors = 16):
-        # Default note_list page Notes, Tags, Search = 4*3+3+1
-        anchors = self.driver.find_elements(By.CSS_SELECTOR, '.dialog-anchor')
-        self.assertEqual(len(anchors), n_anchors) 
-   
     def test_note_list(self):
         """Test note list loads"""
         self.driver.get(f'{self.live_server_url}/')
@@ -166,17 +178,6 @@ class LiveServerTests:
             f"Url:{self.driver.current_url} - query should be empty after search query cancel!")
         self.check_note_list_view()
 
-    def admin_login(self):
-        User.objects.create_superuser(username="admin", email=None, password="admin")
-        self.driver.get(f'{self.live_server_url}/admin/demo/note/')
-        username = self.driver.find_element(By.NAME, "username")
-        if username:
-            username.send_keys('admin')
-            self.driver.find_element(By.NAME, "password").send_keys('admin')
-            self.driver.find_element(
-                By.CSS_SELECTOR, 'input[type="submit"]').click()
-        self.driver.find_element(By.CSS_SELECTOR, 'th[class="column-noteandtags"]')
-        
     def test_note_admin_change_form(self):
         '''Test admin view dialog/iframe'''
         self.admin_login()
