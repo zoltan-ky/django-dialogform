@@ -23,27 +23,39 @@ class BaseDialog {
     dialogButtonsSelector = '.dialogform-buttons button';
     okButtonSelector = this.dialogButtonsSelector + '[value=confirm]';
 
+    error(message, dialog = null) {
+        alert(message);
+        if (dialog) {
+            this.destroy_dialog(dialog);
+        }
+        if ('anchor' in this &&
+            'cleanup' in this.anchor.dataset &&
+            this.anchor.dataset.cleanup in globalThis) {
+            globalThis[this.anchor.dataset.cleanup]();
+        }
+        throw new Error(message);
+    }
+    
     // Utility function to fetch response header *and* body:
     async fetchall(url, options) {
         const response = await fetch(url, options);
-        if (!response.ok || response.status != 200) {
-            throw new Error(`fetch: ${options.method} ${url} failed with response.status ${response.status}`)
+        if (response.ok && response.status == 200) {
+            response.contentType = response.headers.get('Content-Type').split(';')[0];
+            switch (response.contentType) {
+            case 'application/json':
+                response.data = await response.json();
+                break;
+            case 'text/html':
+            case 'text/javascript':
+            case 'application/javascript':
+                /* case 'module':  how to handle? */
+                response.data = await response.text();
+                break;
+            default:
+                response.ok = false;
+                response.message = `Unhandled fetch response content type: ${response.contentType}`;
+            }
         }
-        response.contentType = response.headers.get('Content-Type').split(';')[0];
-        switch (response.contentType) {
-        case 'application/json':
-            response.data = await response.json();
-            break;
-        case 'text/html':
-        case 'text/javascript':
-        case 'application/javascript':
-            /* case 'module':  how to handle? */
-            response.data = await response.text();
-            break;
-        default:
-            // response.ok = false;
-            throw new Error(`Unhandled fetch response content type: ${response.contentType}`);
-        }             
         return response;
     }
 
@@ -66,11 +78,12 @@ class BaseDialog {
     check_dialog(dialog) {
         //  Basic dialogform verification. Sets this.form if successful
         if (dialog.tagName !== this.dialogTagName) {
-            throw new Error(`django template not extended from dialogform/dialog.html?`);
+            
+            this.error(`django template not extended from dialogform/dialog.html?`, dialog);
         }
         if (!(this.form = dialog.querySelector('form')) ||
             !(dialog.querySelector(this.okButtonSelector))) {
-            throw new Error(`django dialogform not extended from dialogform/include/form.html; missing required button(s)?`);
+            this.error(`django dialogform not extended from dialogform/include/form.html; missing required button(s)?`, dialog);
         }
     }
 
@@ -169,9 +182,6 @@ class BaseDialog {
         if (!el) {
             // If no other, set OK/confirm button as default autofocus
             el = form.querySelector(this.okButtonSelector);
-            if (!el) {
-                throw new Error(`${form} does not contain ${this.okButtonSelector}`);
-            }
             el.setAttribute("autofocus","");
         }
         return el;
@@ -245,7 +255,8 @@ class BaseDialog {
                             done = false; // fumbled, redo...
                         }
                     } else {
-                        console.error(`Dialogform POST failed with status ${response.status}\n`);
+                        this.error(`Dialogform POST to url:${url} failed with ` +
+                                   `status: ${response.status}`, dialog);
                     }
                 } else {
                     // form method GET: request form action path with form_data query
@@ -264,6 +275,7 @@ class BaseDialog {
         }
     }
 }
+
 
 class IFrameDialog extends BaseDialog {
 
@@ -301,10 +313,9 @@ class IFrameDialog extends BaseDialog {
 
     check_dialog(dialog) {
         let iframe = dialog.querySelector('iframe');
-        const div = iframe.contentDocument.querySelector('.dialogform-dialog');
+        const div = iframe.contentDocument.querySelector('div.dialogform-dialog'); // dialogform/page.html
         if (!div) {
-            throw new Error('django dialog/iframe template missing div.dialogform-dialog - ' +
-                            'template not extended from dialogform/page.html?');
+            this.error('dialog/iframe missing div.dialogform-dialog - template not extended from dialogform/page.html?', dialog);
         }
         super.check_dialog(div);
     }
@@ -362,7 +373,8 @@ class LocalDialog extends BaseDialog {
     check_dialog(dialog) {
         super.check_dialog(dialog);
         if (this.form.method.toLowerCase() != "get") {
-            throw new Error(`django dialogform LocalDialog method must be "get", others not supported`);
+            this.error('django-dialogform LocalDialog method must be "get",' +
+                       'others not supported', dialog);
         }
         // Save original method so it could be restored by destroy_dialog
     }
@@ -370,7 +382,7 @@ class LocalDialog extends BaseDialog {
     async create_dialog() {
         let dialog = document.querySelector(this.anchor.dataset.url);
         if (!dialog) {
-            throw new Error(`django dialogform LocalDialog can't find url: ${this.anchor.dataset.url}`);
+            this.error(`django dialogform LocalDialog can't find url: ${this.anchor.dataset.url}`);
         }
         this.originalParent = dialog.parentElement;
         let container = this.get_container();
@@ -395,7 +407,10 @@ class DialogDialog extends BaseDialog {
         // dialogform url
         let response = this.response ? this.response :
             await this.fetchall(this.anchor.dataset.url, { method: 'GET' });
-
+        if (!response.ok) {
+            this.error(`django-dialogform Dialog could not fetch anchor ` +
+                       `url: ${this.anchor.dataset.url}`);
+        }
         // Create DOM dialog
         let container = this.get_container();
         container.insertAdjacentHTML('afterbegin', response.data);
@@ -408,8 +423,9 @@ class DialogDialog extends BaseDialog {
         super.check_dialog(dialog);
         let media_container = dialog.querySelector('.dialogform-media');
         if (!media_container) {
-            throw new Error('django dialogform missing div.dialogform-media - ' +
-                            'template not extended from dialogform/dialog.html?');
+            this.error('django dialogform missing div.dialogform-media - ' +
+                       'template not extended from dialogform/dialog.html?',
+                      dialog);
         }
     }
     
@@ -449,7 +465,7 @@ class DialogFactory {
         let a = event.target;   // Find anchor
         while (a && !a.classList.contains('dialog-anchor')) a = a.parentElement;
         if (!a) {
-            throw new Error(`Something's terribly wrong: no .dialog-anchor for ${event} on ${event.target}`);
+            this.error(`Something's terribly wrong: no .dialog-anchor for ${event} on ${event.target}`);
         }
         if (typeof jQuery === "undefined" && 'django' in globalThis) {
             $ = jQuery = django.jQuery;
@@ -460,7 +476,7 @@ class DialogFactory {
         } else if (type == 'iframe') {
             return new IFrameDialog(a);
         } else {
-            throw new Error(`Invalid data-type: ${type} on dialog_anchor (url:${a.dataset.url})`);
+            this.error(`Invalid data-type: ${type} on dialog_anchor (url:${a.dataset.url})`);
         }
     }
 }

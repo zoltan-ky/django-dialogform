@@ -73,8 +73,7 @@ Includes media required to instantiate dialog 'anchors' and basic demo app styli
           <td>
             <div class="dialog-anchor" data-url="{% url 'note-iframe-admin' pk=note.pk %}"
                  title="Iframe Edit with admin widgets"
-                 data-type="iframe"
-                 data-cleanup="admin_cleanup">
+                 data-type="iframe">    {# iframe does not need cleanup #}
               <span>{{ note.content }}</span></div>
           </td>
           <td>

@@ -19,9 +19,11 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.support import expected_conditions as condition
+from selenium.webdriver.support.relative_locator import locate_with
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 
@@ -80,10 +82,27 @@ class Basic(TestCase):
 class LiveServerTests:
     def setUp(self):
         setUpDatabase(self)
-        
-    def check_note_list_view(self):
+
+    def open_dialog(self, selector):
+        self.driver.find_element(By.CSS_SELECTOR, selector).click()
+        self.dialog_container = self.driver.find_element(By.CSS_SELECTOR, 'div > dialog')
+
+    def close_dialog(self, value, iframe=None):
+        if iframe: self.driver.switch_to.frame(iframe)
+        self.driver.find_element(
+            By.CSS_SELECTOR, f'form[method="dialog"] button[value="{value}"]').click()
+        if iframe: self.driver.switch_to.default_content();
+        WebDriverWait(self.driver, timeout=3).until(
+            condition.any_of(
+                condition.staleness_of(self.dialog_container),
+                condition.invisibility_of_element(self.dialog_container)))
+
+    # Tests:
+    # ------
+    def check_note_list_view(self, n_anchors = 16):
+        # Default note_list page Notes, Tags, Search = 4*3+3+1
         anchors = self.driver.find_elements(By.CSS_SELECTOR, '.dialog-anchor')
-        self.assertEqual(len(anchors), 4*3+3+1) # Notes, Tags, Search
+        self.assertEqual(len(anchors), n_anchors) 
    
     def test_note_list(self):
         """Test note list loads"""
@@ -93,73 +112,57 @@ class LiveServerTests:
     def test_note_anchor(self):
         '''dialog with django.forms.widgets'''
         self.driver.get(f'{self.live_server_url}/')
-        self.driver.find_element(
-            By.CSS_SELECTOR, '.dialog-anchor[data-url="/note/1/change/"]').click()
-        self.driver.find_element(
-            By.CSS_SELECTOR, 'form[method="dialog"] button[value="confirm"]').click()
+        self.open_dialog('.dialog-anchor[data-url="/note/1/change/"]')
+        self.close_dialog('confirm')
         self.check_note_list_view()
 
     def test_note_anchor_iframe(self):
         '''dialog/iframe with django.forms.widgets'''
         self.driver.get(f'{self.live_server_url}/')
-        self.driver.find_element(
-            By.CSS_SELECTOR, '.dialog-anchor[data-url="/note/1/iframe/"]').click()
+        self.open_dialog('.dialog-anchor[data-url="/note/1/iframe/"]')
         iframe = self.driver.find_element(By.CSS_SELECTOR, 'dialog > iframe')
-        self.driver.switch_to.frame(iframe)
-        self.driver.find_element(
-            By.CSS_SELECTOR, 'form[method="dialog"] button[value="confirm"]').click()
-        self.driver.switch_to.default_content();
+        self.close_dialog('confirm', iframe)
         self.check_note_list_view()
 
     def test_note_anchor_admin(self):
         '''dialog with admin widgets'''
         self.driver.get(f'{self.live_server_url}/')
-        self.driver.find_element(
-            By.CSS_SELECTOR, '.dialog-anchor[data-url="/note/1/change-admin/"]').click()
-        self.driver.find_element(
-            By.CSS_SELECTOR, 'form[method="dialog"] button[value="confirm"]').click()
+        self.open_dialog('.dialog-anchor[data-url="/note/1/change-admin/"]') 
+        # make sure 'artefact is there prior to closing
+        box = self.driver.find_element(By.CSS_SELECTOR, 'div#calendarbox0')
+        self.close_dialog('confirm')
         self.check_note_list_view()
+        # make sure artefact "box" above is gone (cleaned by demo/js/admin_cleanup.js)
+        WebDriverWait(self.driver, timeout=5).until(condition.staleness_of(box))
 
     def test_note_anchor_iframe_admin(self):
         '''dialog/iframe with Admin widgets'''
         self.driver.get(f'{self.live_server_url}/')
-        self.driver.find_element(
-            By.CSS_SELECTOR, '.dialog-anchor[data-url="/note/1/iframe-admin/"]').click()
+        self.open_dialog('.dialog-anchor[data-url="/note/1/iframe-admin/"]')
         iframe = self.driver.find_element(By.CSS_SELECTOR, 'dialog > iframe')
-        self.driver.switch_to.frame(iframe)
-        self.driver.find_element(
-            By.CSS_SELECTOR, 'form[method="dialog"] button[value="confirm"]').click()
-        self.driver.switch_to.default_content();
+        self.close_dialog('confirm', iframe)
         self.check_note_list_view()
 
     def test_note_search_anchor(self):
         '''Local "search" dialog '''
         self.driver.get(f'{self.live_server_url}/')
-        self.driver.find_element(
-            By.CSS_SELECTOR, '.dialog-anchor[data-url="#local_note_dialog"]').click()
+        self.open_dialog('.dialog-anchor[data-url="#local_note_dialog"]')
         self.driver.find_element(
             By.CSS_SELECTOR, 'form[method="dialog"] input#id_search').send_keys("First")
-        self.driver.find_element(
-            By.CSS_SELECTOR, 'form[method="dialog"] button[value="confirm"]').click()
-        notes = self.driver.find_elements(
-            By.CSS_SELECTOR, 'div.noteandtags > div.dialog-anchor')
-        self.assertEqual(len(notes), 1)
+        self.close_dialog('confirm')
+        self.check_note_list_view(n_anchors=4+1+1)
 
     def test_note_search_cancel(self):
         '''Local "search" dialog '''
         self.driver.get(f'{self.live_server_url}/')
-        self.driver.find_element(
-            By.CSS_SELECTOR, '.dialog-anchor[data-url="#local_note_dialog"]').click()
+        self.open_dialog('.dialog-anchor[data-url="#local_note_dialog"]')
         self.driver.find_element(
             By.CSS_SELECTOR, 'form[method="dialog"] input#id_search').click()
-        self.driver.find_element(
-            By.CSS_SELECTOR, 'form[method="dialog"] button[value="cancel"]').click()
-        notes = self.driver.find_elements(
-            By.CSS_SELECTOR, 'div.noteandtags > div.dialog-anchor')
+        self.close_dialog('cancel')
+        notes = self.driver.find_elements(By.CSS_SELECTOR, 'div.noteandtags > div.dialog-anchor')
         self.assertEqual(len(notes), 3)
         WebDriverWait(self.driver, timeout=5).until(
-            expected_conditions.none_of(
-                expected_conditions.url_matches(r'http.*/?.*=')),
+            condition.none_of(condition.url_matches(r'http.*/?.*=')),
             f"Url:{self.driver.current_url} - query should be empty after search query cancel!")
         self.check_note_list_view()
 
@@ -177,27 +180,31 @@ class LiveServerTests:
     def test_note_admin_change_form(self):
         '''Test admin view dialog/iframe'''
         self.admin_login()
-        self.driver.find_element(
-            By.CSS_SELECTOR, '.dialog-anchor[data-url="/admin/demo/note/1/change/"]').click()
+        self.open_dialog('.dialog-anchor[data-url="/admin/demo/note/1/change/"]')
         iframe = self.driver.find_element(By.CSS_SELECTOR, 'dialog > iframe')
-        self.driver.switch_to.frame(iframe)
-        self.driver.find_element(
-            By.CSS_SELECTOR,'form[method="dialog"] button[value="confirm"]').click()
+        self.close_dialog('confirm', iframe)
+        self.check_note_list_view(n_anchors=9)
+        
 
     def test_note_admin_non_view(self):
         ''' Test non-admin view dialog within admin'''
         self.admin_login()
-        self.driver.find_element(
-            By.CSS_SELECTOR, '.dialog-anchor[data-url="/note/1/admin-change/"]').click()
-        self.driver.find_element(
-            By.CSS_SELECTOR,'form[method="dialog"] button[value="confirm"]').click()
+        self.open_dialog('.dialog-anchor[data-url="/note/1/admin-change/"]')
+        box = self.driver.find_element(By.CSS_SELECTOR, 'div#calendarbox0')
+        self.close_dialog('confirm')
+        self.check_note_list_view(n_anchors=9)
+        # make sure artefact "box" above is gone (cleaned by demo/js/admin_cleanup.js)
+        WebDriverWait(self.driver, timeout=5).until(condition.staleness_of(box))
 
 
 class Chrome(LiveServerTests, StaticLiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
+        cls.driver = webdriver.Chrome(
+            service=ChromeService(ChromeDriverManager().install()),
+            # options=ChromeOptions().add_experimental_option("detach", True)
+        )
         cls.driver.implicitly_wait(10)
 
     @classmethod
