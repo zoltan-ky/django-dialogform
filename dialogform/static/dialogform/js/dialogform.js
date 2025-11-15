@@ -468,7 +468,7 @@ class DialogFactory {
         let a = event.target;   // Find anchor
         while (a && !a.classList.contains('dialog-anchor')) a = a.parentElement;
         if (!a) {
-            this.error(`Something's terribly wrong: no .dialog-anchor for ${event} on ${event.target}`);
+            BaseDialog.prototype.error(`Something's terribly wrong: no .dialog-anchor for ${event} on ${event.target}`);
         }
         if (typeof jQuery === "undefined" && 'django' in globalThis) {
             $ = jQuery = django.jQuery;
@@ -479,7 +479,7 @@ class DialogFactory {
         } else if (type == 'iframe') {
             return new IFrameDialog(a);
         } else {
-            this.error(`Invalid data-type: ${type} on dialog_anchor (url:${a.dataset.url})`);
+            BaseDialog.prototype.error(`Invalid data-type: ${type} on dialog_anchor (url:${a.dataset.url})`);
         }
     }
 }
