@@ -47,29 +47,27 @@
 
 .dialog-anchor span {
     text-decoration: none;
+    &:hover {
+        text-decoration: underline;
+        text-underline-position: under;
+        text-underline-offset: 0.1em;
+        text-decoration-thickness: 1px;
+        background: var(--_dialog-anchor-bg-hover);
+    }
 }
-.dialog-anchor span:hover {
-    text-decoration: underline;
-    text-underline-position: under;
-    text-underline-offset: 0.1em;
-    text-decoration-thickness: 1px;
-    background: var(--_dialog-anchor-bg-hover);
-}
-
 .dialog-anchor img {
     height: var(--_icon-size);
     width:  var(--_icon-size);
     min-height: var(--_icon-size);
     min-width:  var(--_icon-size);
+    transition: all 0.5s linear;
+    .hide  {
+        opacity: 0;
+    }
+    .hide:hover {
+        opacity: 1;
+    }
 }
-
-.dialog-anchor .hide {
-    opacity: 0;
-}
-.dialog-anchor .hide:hover {
-    opacity: 1;
-}
-
 
 /*
  * Dialogform elements
