@@ -52,7 +52,7 @@ class NoteAdmin(admin.ModelAdmin):
             '<div class="dialog-anchor"' +
             '  data-type="dialog"' + # also default if omitted
             f' data-url="{url}" title="{url}"' +
-            f' data-cleanup="admin_cleanup"><span>{note.content}</span></div>')
+            f' data-cleanup="admin_cleanup"><span>{note.content}</span></div>', kwargs={})
 
     # Admin function that display the note content field annotated with any tags
     # and a popup tags dialog. A concatenation of iframe note and tags edit dialogs
@@ -69,7 +69,7 @@ class NoteAdmin(admin.ModelAdmin):
             '  data-type="iframe"' +
             f' data-url="{url1}" title={url1}"><span>{note.content}</span></div>' + 
             f'   <sup><div class="dialog-anchor" data-url="{url2}" title="{url2}">{tags_html}' +
-            '    </div></sup>')
+            '    </div></sup>', kwargs={})
  
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
