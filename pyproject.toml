@@ -8,7 +8,7 @@ readme = {file = ["README.rst"]}
 
 [project]
 name = "django-dialogform"
-version="1.0-rc.3"
+version="1.01"
 description='Django app to load and open form views within dialog element popups'
 readme = "README.rst"
 authors = [
@@ -18,10 +18,11 @@ requires-python = ">=3.8"
 keywords = ["dialog","form"]
 license = {text = "GNU General Public License v3 (GPLv3)"}
 classifiers = [
-  'Development Status :: 4 - Beta',
+  'Development Status :: 4 - Stable',
   'Environment :: Web Environment',
   'Framework :: Django',
-  'Framework :: Django :: 4',
+  'Framework :: Django :: 6',
+  'Framework :: Django :: 5',
   'Intended Audience :: Developers',
   'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
   'Operating System :: OS Independent',
@@ -31,7 +32,7 @@ classifiers = [
   'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
 ]
 dependencies = [
-  'django>=4.1',
+  'django>=5.0',
 ]
 dynamic = ["version", "readme"]
 
