@@ -23,6 +23,7 @@ Dialogform form and view templates may also be used within the Admin and contain
 
 A simple demo app with all these variations is included in the dialogform/demo subdirectory.
 
+[![Published on Django Packages](https://img.shields.io/badge/Published%20on-Django%20Packages-0c3c26)](https://djangopackages.org/packages/p/django-dialogform/)
 
 
 Known Limitations
