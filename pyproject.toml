@@ -1,30 +1,27 @@
 [build-system]
-requires = ["setuptools", "setuptools-scm"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
-version = {attr = "dialogform.VERSION"}
 readme = {file = ["README.rst"]}
 
 [project]
 name = "django-dialogform"
-version="1.01"
+version = "1.1"
 description='Django app to load and open form views within dialog element popups'
-readme = "README.rst"
 authors = [
   {name = "Zoltan Kemenczy", email = "gugliposta@gmail.com"},
 ]
 requires-python = ">=3.8"
-keywords = ["dialog","form"]
-license = {text = "GNU General Public License v3 (GPLv3)"}
+keywords = ["dialog","form","django"]
+license = "GPL-3.0-or-later"
 classifiers = [
-  'Development Status :: 4 - Stable',
+  'Development Status :: 5 - Production/Stable',
   'Environment :: Web Environment',
   'Framework :: Django',
   'Framework :: Django :: 6',
   'Framework :: Django :: 5',
   'Intended Audience :: Developers',
-  'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
   'Operating System :: OS Independent',
   'Programming Language :: Python',
   'Programming Language :: Python :: 3',
@@ -34,7 +31,7 @@ classifiers = [
 dependencies = [
   'django>=5.0',
 ]
-dynamic = ["version", "readme"]
+dynamic = ["readme"]
 
 [project.urls]
 homepage = "https://github.com/zoltan-ky/django-dialogform"
