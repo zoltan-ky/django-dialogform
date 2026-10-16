@@ -23,13 +23,15 @@ Dialogform form and view templates may also be used within the Admin and contain
 
 A simple demo app with all these variations is included in the dialogform/demo subdirectory.
 
-[![Published on Django Packages](https://img.shields.io/badge/Published%20on-Django%20Packages-0c3c26)](https://djangopackages.org/packages/p/django-dialogform/)
+.. image:: https://img.shields.io/badge/Published%20on-Django%20Packages-0c3c26
+   :alt: Published on Django Packages
+   :target: https://djangopackages.org/packages/p/django-dialogform/
 
 
 Known Limitations
 -----------------
 
-Dialogforms are auto-positioning and -sizing within the viewport. Dialogform media assets are restricted to sameorigin. Tested only as far as a few more complex Admin widgets (AdminSplitDateTime, RelatedObjectsWrapper, Autoselect...) and some similar third-party apps like django-addanother, django-autocomplete-light.
+Dialogforms are auto-positioning and -sizing within the viewport. Tested only as far as a few more complex Admin widgets (AdminSplitDateTime, RelatedObjectsWrapper, Autoselect...) and some similar third-party apps like django-addanother, django-autocomplete-light.
 
 
 Demo Installation
@@ -47,9 +49,9 @@ Check for ``manage.py``, ``dialogform``, ``README.rst`` to confirm. Set up a pyt
    
     python3 -m venv .venv
     source .venv/bin/activate
-    pip install -r requirements.txt
+    pip install -r requirements
 
-This will install the only requirement, django 4.1 or greater.  Then run:
+This will install the only requirement, django 5.0 or greater.  Then run:
 
 ::
 
@@ -178,6 +180,8 @@ If some additional media, not captured by the form/widgets media, are required::
       ...and after...
    {% endblock %}
 
+For ``dialog``-type dialogs the media scripts are (re)loaded in order into the document when the dialog opens, even if the document has loaded them already, so that they initialize the dialog's widgets. Since the document has loaded by then, any ``DOMContentLoaded`` and ``load`` event handlers that these scripts add are called once they have all loaded. Event listeners added while a dialog is open are removed when it closes.
+
 
 Anchors
 ^^^^^^^
@@ -203,11 +207,15 @@ For ``iframe``-type dialogs add the ``data-type`` attribute::
          data-type="iframe">
          ...
 
-For ``local``type dialogs ``data-type`` should predictably be set to ``local``.
+For ``local``-type dialogs ``data-url`` is the ``#id`` of the ``<dialog>`` element already in the document; leave ``data-type`` out (or set it to ``dialog``)::
+
+    <span class="dialog-anchor" data-url="#local_note_dialog"><span>Search</span></span>
+
+Anchors added to the document after it has loaded, e.g. within dialogs, work the same way.
 
 data-cleanup attribute
 ''''''''''''''''''''''
-Sometimes forms or widgets leave behind artefacts generated during form/widget instantiation. An example of this is ``AdminSplitDateTime`` widget that leaves behind `#calendarbox` and `#clockbox` divs in the document body.  Normally this is not a problem since after a valid form is submitted a new document will be loaded.  However, if the dialogform is cancelled, it's anchor may have an optional ``data-cleanup`` attribute that names a global javascript function, loaded with the document or dialogform media that is invoked without parameters after closing the dialog. An example from ``note_list.html``::
+Sometimes forms or widgets leave behind artefacts generated during form/widget instantiation. An example of this is ``AdminSplitDateTime`` widget that leaves behind ``#calendarbox`` and ``#clockbox`` elements in the document body.  Normally this is not a problem since after a valid form is submitted a new document will be loaded.  However, if the dialogform is cancelled, it's anchor may have an optional ``data-cleanup`` attribute that names a global javascript function, loaded with the document or dialogform media that is invoked without parameters after closing the dialog. An example from ``note_list.html``::
 
    <div class="dialog-anchor" data-url="{% url 'note-iframe-admin' pk=note.pk %}"
                  title="Iframe Edit with admin widgets"

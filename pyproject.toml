@@ -7,12 +7,12 @@ readme = {file = ["README.rst"]}
 
 [project]
 name = "django-dialogform"
-version = "1.1"
+version = "1.2"
 description='Django app to load and open form views within dialog element popups'
 authors = [
   {name = "Zoltan Kemenczy", email = "gugliposta@gmail.com"},
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 keywords = ["dialog","form","django"]
 license = "GPL-3.0-or-later"
 classifiers = [
