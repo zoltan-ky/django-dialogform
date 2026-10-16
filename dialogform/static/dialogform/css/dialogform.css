@@ -91,6 +91,8 @@
 dialog.dialogform-dialog, dialog.dialogform-iframe {
     position: fixed;            /* exact location and size calculated on load */
     overflow: auto;             /* if size reduced due to viewport size */
+    max-height: 100vh;
+    max-width:  100vw;
     padding: 16px;
     box-sizing: border-box;
 }
