@@ -10,6 +10,7 @@
 from django.db import models
 from django    import forms
 from django.contrib     import admin
+from django.contrib.admin.options import IS_POPUP_VAR
 from django.http        import JsonResponse
 from django.utils.html  import format_html
 from django.urls        import reverse_lazy
@@ -35,8 +36,14 @@ class NoteAdmin(admin.ModelAdmin):
     add_form_template = "admin/change_form.html"
     change_form_template = "dialogform/demo/admin_note_change.html"
     
-    def change_view(self, request, object_id, form_url='', extra_context={}):
-        extra_context.update({'is_popup': True})
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        # is_popup leaves out the admin page header, sidebar etc. but also adds a
+        # _popup form field, for which the admin would respond with its popup
+        # (window) response instead of a redirect: drop it.
+        extra_context = {**(extra_context or {}), 'is_popup': True}
+        if request.method == 'POST' and IS_POPUP_VAR in request.POST:
+            request.POST = request.POST.copy()
+            del request.POST[IS_POPUP_VAR]
         response = super().change_view(request, object_id, form_url, extra_context)
         if request.method == 'POST' and response.status_code == 302:
             response = JsonResponse(
