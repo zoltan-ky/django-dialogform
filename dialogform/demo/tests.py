@@ -25,6 +25,7 @@ try:
     from selenium.webdriver.chrome.service import Service as ChromeService
     from selenium.webdriver.chrome.options import Options as ChromeOptions
     from selenium.webdriver.firefox.service import Service as FirefoxService
+    from selenium.webdriver.firefox.options import Options as FirefoxOptions
     from selenium.webdriver.support.wait import WebDriverWait
     from selenium.webdriver.support import expected_conditions as condition
     from selenium.webdriver.support.relative_locator import locate_with
@@ -279,7 +280,15 @@ class Firefox(LiveServerTests, StaticLiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()))
+        options = FirefoxOptions()
+        if os.environ.get("CI"):        # e.g. GitHub Actions: no display
+            options.add_argument("-headless")
+            options.add_argument("--width=1920")
+            options.add_argument("--height=1080")
+        cls.driver = webdriver.Firefox(
+            service=FirefoxService(GeckoDriverManager().install()),
+            options=options,
+        )
         cls.driver.implicitly_wait(10)
 
     @classmethod

@@ -51,5 +51,5 @@ The Python side is thin; almost all behavior lives in `dialogform/static/dialogf
 
 ## Notes
 
-- CI (`.github/workflows/django.yml`) runs `Basic` and `Chrome` (headless, enabled by the `CI` env var in `Chrome.setUpClass`), on Python 3.10 (the `requires-python` minimum, which gets Django 5.2) and 3.12 (which gets Django 6, since Django 6 needs Python 3.12 or later). Keep the versions quoted in the YAML (`"3.10"`), because an unquoted `3.10` is read as the number 3.1.
+- CI (`.github/workflows/django.yml`) runs `Basic`, `Chrome` and `Firefox` (headless, enabled by the `CI` env var in their `setUpClass`; `GH_TOKEN` is set so webdriver-manager's geckodriver lookup isn't rate-limited), on Python 3.10 (the `requires-python` minimum, which gets Django 5.2) and 3.12 (which gets Django 6, since Django 6 needs Python 3.12 or later). Keep the versions quoted in the YAML (`"3.10"`), because an unquoted `3.10` is read as the number 3.1.
 - The version is set in `pyproject.toml`.

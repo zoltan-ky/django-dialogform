@@ -28,6 +28,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements
     - name: Run Tests
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # webdriver-manager looks up geckodriver via the GitHub API
       run: |
         pip install -r testing_requirements
-        python manage.py test dialogform.demo.tests.Basic dialogform.demo.tests.Chrome
+        python manage.py test dialogform.demo.tests.Basic dialogform.demo.tests.Chrome dialogform.demo.tests.Firefox
