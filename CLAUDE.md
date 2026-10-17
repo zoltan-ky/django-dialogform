@@ -13,7 +13,7 @@ pip install -r requirements                 # django only
 pip install -r testing_requirements         # selenium + webdriver-manager for browser tests
 ./manage.py runserver 8000                  # demo at localhost:8000; admin login admin/admin (committed demo db.sqlite3)
 
-./manage.py test dialogform.demo.tests.Basic     # non-browser tests (what CI runs)
+./manage.py test dialogform.demo.tests.Basic     # non-browser tests
 ./manage.py test dialogform.demo.tests.Chrome    # selenium tests in Chrome
 ./manage.py test dialogform.demo.tests.Firefox   # selenium tests in Firefox
 ./manage.py test dialogform.demo.tests.Chrome.test_note_search_cancel   # single test
@@ -51,5 +51,5 @@ The Python side is thin; almost all behavior lives in `dialogform/static/dialogf
 
 ## Notes
 
-- CI (`.github/workflows/django.yml`) runs only `dialogform.demo.tests.Basic`, on Python 3.10 (the `requires-python` minimum, which gets Django 5.2) and 3.12 (which gets Django 6, since Django 6 needs Python 3.12 or later). Keep the versions quoted in the YAML (`"3.10"`), because an unquoted `3.10` is read as the number 3.1.
+- CI (`.github/workflows/django.yml`) runs `Basic` and `Chrome` (headless, enabled by the `CI` env var in `Chrome.setUpClass`), on Python 3.10 (the `requires-python` minimum, which gets Django 5.2) and 3.12 (which gets Django 6, since Django 6 needs Python 3.12 or later). Keep the versions quoted in the YAML (`"3.10"`), because an unquoted `3.10` is read as the number 3.1.
 - The version is set in `pyproject.toml`.

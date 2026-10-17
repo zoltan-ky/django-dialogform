@@ -7,6 +7,7 @@
 # to redistribute it under conditions of the GPLv3 LICENSE included in this package
 # To use it, refer to the included README.rst
 
+import os
 from django.test import TestCase, Client
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.utils import timezone
@@ -256,9 +257,14 @@ class Chrome(LiveServerTests, StaticLiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        options = ChromeOptions()
+        # options.add_experimental_option("detach", True)
+        if os.environ.get("CI"):        # e.g. GitHub Actions: no display
+            options.add_argument("--headless=new")
+            options.add_argument("--window-size=1920,1080")
         cls.driver = webdriver.Chrome(
             service=ChromeService(ChromeDriverManager().install()),
-            # options=ChromeOptions().add_experimental_option("detach", True)
+            options=options,
         )
         cls.driver.implicitly_wait(10)
 

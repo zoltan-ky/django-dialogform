@@ -30,4 +30,4 @@ jobs:
     - name: Run Tests
       run: |
         pip install -r testing_requirements
-        python manage.py test dialogform.demo.tests.Basic
+        python manage.py test dialogform.demo.tests.Basic dialogform.demo.tests.Chrome
